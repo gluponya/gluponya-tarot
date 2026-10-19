@@ -114,6 +114,34 @@ footer{color:var(--soft);font-size:14px}
     return get(api, { Accept: 'application/vnd.github.raw+json' }).catch(() => get(raw));
   }
 
+  // ---- без спойлеров: арт карты на витрине видно, только если эта карта есть в ТВОЕЙ колоде ----
+  // код берётся из альбома (localStorage 'tarot-code'), колода расшифровывается так же, как в index.html
+  const enc = new TextEncoder();
+  const b64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+  const hex = buf => Array.from(new Uint8Array(buf), x => x.toString(16).padStart(2, '0')).join('');
+  async function myCards() {
+    let code = ''; try { code = localStorage.getItem('tarot-code') || ''; } catch (e) {}
+    if (!code || !GH || !(window.crypto && crypto.subtle)) return {};
+    const api = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/tarot_public.json?ref=data`;
+    const raw = `https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/data/tarot_public.json?t=` + Date.now();
+    const get = (u, h) => fetch(u, { cache: 'no-store', headers: h || {} }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
+    const T = await get(api, { Accept: 'application/vnd.github.raw+json' }).catch(() => get(raw));
+    const base = await crypto.subtle.importKey('raw', enc.encode(code), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: enc.encode(T.kdf.salt), iterations: T.kdf.iter, hash: 'SHA-256' }, base, 256);
+    const k = await crypto.subtle.importKey('raw', bits, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const id = hex(await crypto.subtle.sign('HMAC', k, enc.encode('id'))).slice(0, 24);
+    const d = (T.decks || []).find(x => x.i === id);
+    if (!d) return {};
+    const nonce = b64(d.n), ct = b64(d.c), out = new Uint8Array(ct.length);
+    for (let i = 0, off = 0; off < ct.length; i++) {
+      const blk = new Uint8Array(2 + nonce.length + 4); blk.set(enc.encode('ks')); blk.set(nonce, 2);
+      new DataView(blk.buffer).setUint32(2 + nonce.length, i);
+      const ks = new Uint8Array(await crypto.subtle.sign('HMAC', k, blk));
+      for (let j = 0; j < ks.length && off < ct.length; j++, off++) out[off] = ct[off] ^ ks[j];
+    }
+    return JSON.parse(new TextDecoder().decode(out)).cards || {};
+  }
+
   function nobody(D, text) {
     const s = el('section', 'sec');
     s.appendChild(el('h2', null, text));
@@ -128,8 +156,9 @@ footer{color:var(--soft);font-size:14px}
     app.appendChild(s);
   }
 
-  function render(D) {
+  function render([D, OWN]) {
     document.getElementById('msg').remove();
+    const seen = c => !!(OWN && OWN[c.id]);
     const P = D.profiles || {};
     const p = DEMO ? Object.values(P)[0] : P[U];
     if (!p) return nobody(D, U ? 'Такого профиля пока нет' : 'Профили');
@@ -172,23 +201,31 @@ footer{color:var(--soft);font-size:14px}
     // ---- витрина ----
     const sec = el('section', 'sec');
     sec.appendChild(el('h2', null, 'Витрина'));
-    sec.appendChild(el('p', null, 'Самые редкие карты из колоды. Нажми на карту, чтобы рассмотреть её'));
+    const anyHidden = (p.showcase || []).some(c => !seen(c));
+    sec.appendChild(el('p', null, 'Самые редкие карты из колоды. ' + (anyHidden
+      ? 'Карты, которых нет в твоей колоде, лежат рубашкой: без спойлеров, пока не вытянешь сам(а). Открыть свою колоду в альбоме по коду, и они перевернутся'
+      : 'Нажми на карту, чтобы рассмотреть её')));
     const sh = el('div', 'shelf');
-    const items = (p.showcase || []).map(c => ({ img: IMG + c.id + '.webp', back: IMG + 'back.webp', num: c.num, title: c.title, rarity: c.rarity,
+    const open = (p.showcase || []).filter(seen);
+    const items = open.map(c => ({ img: IMG + c.id + '.webp', back: IMG + 'back.webp', num: c.num, title: c.title, rarity: c.rarity,
       rlabel: (D.rarity[c.rarity] || {}).label || '', n: c.n, log: [[c.t || 0, c.say || '', 0]],
       note: `Карта из колоды ${p.name}. Остальные карты и все предсказания видит только владелец колоды по личному коду.` }));
-    (p.showcase || []).forEach((c, i) => {
+    (p.showcase || []).forEach(c => {
+      const vis = seen(c);
       const f = el('figure', 'sc ' + c.rarity), cd = el('div', 'card'), im = el('img');
-      im.src = IMG + c.id + '.webp'; im.alt = `${c.num} ${c.title}`; im.loading = 'lazy'; cd.appendChild(im);
-      cd.tabIndex = 0; cd.setAttribute('role', 'button'); cd.setAttribute('aria-label', `Открыть карту ${c.title}`);
-      const go = () => window.CardView && CardView.open(items, i);
-      cd.addEventListener('click', go);
-      cd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
-      const cap = el('figcaption'); cap.appendChild(el('b', null, c.title));
+      im.src = IMG + (vis ? c.id : 'back') + '.webp'; im.alt = vis ? `${c.num} ${c.title}` : 'рубашка: этой карты нет в твоей колоде'; im.loading = 'lazy'; cd.appendChild(im);
+      if (vis) {
+        const i = open.indexOf(c);
+        cd.tabIndex = 0; cd.setAttribute('role', 'button'); cd.setAttribute('aria-label', `Открыть карту ${c.title}`);
+        const go = () => window.CardView && CardView.open(items, i);
+        cd.addEventListener('click', go);
+        cd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+      } else cd.style.cursor = 'default';
+      const cap = el('figcaption'); cap.appendChild(el('b', null, vis ? c.title : '???'));
       cap.append(`${(D.rarity[c.rarity] || {}).label || ''} · ${day(c.t)}`);
       f.append(cd, cap); sh.appendChild(f);
     });
-    if (!items.length) sh.appendChild(el('p', 'empty', 'Пока пусто. Витрина заполнится после первой карты дня (награда «Карта дня 🔮» за баллы канала)'));
+    if (!(p.showcase || []).length) sh.appendChild(el('p', 'empty', 'Пока пусто. Витрина заполнится после первой карты дня (награда «Карта дня 🔮» за баллы канала)'));
     sec.appendChild(sh);
     const own = el('a', 'btn', '🔮 Открыть свою колоду'); own.href = ALBUM;
     sec.appendChild(own);
@@ -218,7 +255,7 @@ footer{color:var(--soft);font-size:14px}
   }
 
   if (GH) IMG = 'cards/';
-  load().then(render).catch(() => { document.getElementById('msg').textContent = 'Профиль не загрузился. Обнови страницу через минутку'; });
+  Promise.all([load(), myCards().catch(() => ({}))]).then(render).catch(() => { document.getElementById('msg').textContent = 'Профиль не загрузился. Обнови страницу через минутку'; });
 })();
 </script>
 </body>
