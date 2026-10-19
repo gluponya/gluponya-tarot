@@ -90,7 +90,10 @@ button.ghost{background:var(--sheet);color:var(--ink)}
 .lb li.empty::before{content:none}
 footer{color:var(--soft);font-size:14px}
 footer a{color:var(--ink)}
-@media (prefers-reduced-motion:reduce){.slot.own.legend .card{animation:none}}
+.slot.own .card{cursor:pointer;transition:transform .18s ease}
+.slot.own .card:hover{transform:translateY(-5px) rotate(-1.5deg)}
+.slot.own .card:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.slot.own.legend .card{animation:none}.slot.own .card{transition:none}.slot.own .card:hover{transform:none}}
 </style>
 
 <div class="wrap">
@@ -134,6 +137,7 @@ footer a{color:var(--ink)}
 </div>
 
 <script id="tarot-data" type="application/json"></script>
+<script src="cardview.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -179,6 +183,11 @@ footer a{color:var(--ink)}
     const img = el('img'); img.src = IMG + (own ? c.id : 'back') + '.webp';
     img.alt = own ? `${c.num} ${c.title}` : 'рубашка: карта ещё не открыта'; img.loading = 'lazy';
     box.appendChild(img); f.appendChild(box);
+    if (own && ME && ME.cards && ME.cards[c.id]) {            // своя карта: клик — на весь экран
+      box.tabIndex = 0; box.setAttribute('role', 'button'); box.setAttribute('aria-label', `Открыть карту ${c.num} ${c.title}`);
+      box.addEventListener('click', () => openCard(c.id));
+      box.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCard(c.id); } });
+    }
     if (!own && num) box.appendChild(el('span', 'num', c.num));
     if (own && n > 1) f.appendChild(el('span', 'cnt', '×' + n));
     const cap = el('figcaption');
@@ -188,6 +197,13 @@ footer a{color:var(--ink)}
     return f;
   }
   const rt = c => el('span', 'rt ' + c.rarity, D.rarity[c.rarity].label);
+  function openCard(id) {
+    if (!window.CardView || !ME) return;
+    const list = D.cards.filter(c => mine(c.id));
+    const items = list.map(c => ({ img: IMG + c.id + '.webp', back: IMG + 'back.webp', num: c.num, title: c.title, rarity: c.rarity,
+      rlabel: D.rarity[c.rarity].label, n: ME.cards[c.id], log: (ME.log || {})[c.id] || [] }));
+    CardView.open(items, Math.max(0, list.findIndex(c => c.id === id)));
+  }
 
   function showMine(msg) {
     const who = $('who'); who.replaceChildren();
@@ -204,7 +220,7 @@ footer a{color:var(--ink)}
     bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', `собрано ${have} из ${D.total}`);
     who.appendChild(bar);
     const dup = ME.dupes || 0, tc = D.trade || 5;
-    who.appendChild(el('span', 'note', `${have} из ${D.total} карт · вытянуто ${ME.draws} · повторок ${dup}` + (have >= D.total ? ' · вся колода!' : dup >= tc ? ' · можно поменять на новую: !обмен в чате' : '')));
+    who.appendChild(el('span', 'note', `${have} из ${D.total} карт · вытянуто ${ME.draws} · повторок ${dup}` + (have >= D.total ? ' · вся колода!' : dup >= tc ? ' · можно поменять на новую: !обмен в чате' : '') + (have ? ' · нажми на карту, чтобы рассмотреть её и прочитать предсказания' : '')));
     D.cards.forEach(c => { const own = mine(c.id);
       g.appendChild(slot(c, own ? ME.cards[c.id] : 0, own, [own ? rt(c) : el('span', 'rt', 'кто знает, что там')])); });
   }
@@ -261,7 +277,7 @@ footer a{color:var(--ink)}
     (D.leaders || []).forEach(u => { const li = el('li'); li.append(el('span', 'nm', u.name), el('span', 'sc', `${u.n}/${D.total}`)); lb.appendChild(li); });
     if (!lb.children.length) lb.appendChild(el('li', 'empty', 'Пока никого. Первая карта дня ждёт на стриме'));
     const upd = new Date((D.updated || 0) * 1000);
-    $('foot').textContent = `Обновлено ${upd.toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Тянуть карту: награда «Карта дня 🔮» за баллы на twitch.tv/gluponya. Свои карты в чате: !коллекция, обмен повторок: !обмен, код альбома: !код`;
+    $('foot').textContent = `Обновлено ${upd.toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Тянуть карту: награда «Карта дня 🔮» за баллы на twitch.tv/gluponya. Свои карты в чате: !коллекция, обмен повторок: !обмен, код альбома: !код, свой профиль с витриной: !профиль`;
     if (D.demo) st.prepend(chip('🧪 ТЕСТОВЫЕ ДАННЫЕ, код', D.demo.code.slice(0, 4) + '-' + D.demo.code.slice(4)));
     show();
     const saved = D.demo ? D.demo.code : store.get('tarot-code');
