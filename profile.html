@@ -71,6 +71,13 @@ h2{margin:0;font:900 24px/1.1 var(--display);text-transform:uppercase;letter-spa
 .a b{font:900 13px/1.1 var(--display);text-transform:uppercase;overflow-wrap:anywhere;min-width:0}
 .a span{font-size:13px;color:var(--soft);line-height:1.2;min-width:0}
 .a.off{opacity:.38;filter:grayscale(1);border-style:dashed}
+.a.r3:not(.off){border-color:var(--r-myth);box-shadow:3px 3px 0 var(--r-myth)}
+.a.r4:not(.off){border-color:var(--r-legend);box-shadow:3px 3px 0 var(--r-legend);background:color-mix(in srgb,var(--r-legend) 14%,var(--sheet))}
+.a em{grid-column:2;font:800 12px/1 var(--display);font-style:normal;color:var(--soft)}
+.a em u{display:block;height:6px;margin-top:4px;border-radius:3px;background:var(--line);text-decoration:none;overflow:hidden}
+.a em u s{display:block;height:100%;background:var(--plum)}
+.a.off:has(em){opacity:.62}
+.rl{grid-column:2;font:800 11px/1 var(--display);text-transform:uppercase;letter-spacing:.05em;color:var(--soft)}
 .btn{display:inline-block;font:900 15px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;padding:13px 16px;border-radius:14px;border:3px solid #1B1418;background:var(--yellow);color:#1B1418;text-decoration:none}
 .list{display:flex;flex-wrap:wrap;gap:8px}
 footer{color:var(--soft);font-size:14px}
@@ -191,7 +198,19 @@ footer{color:var(--soft);font-size:14px}
     const as = el('section', 'sec');
     as.appendChild(el('h2', null, `Ачивки ${p.have}/${p.all}`));
     const g = el('div', 'ach');
-    (p.ach || []).forEach(a => { const d = el('div', 'a' + (a.on ? '' : ' off')); d.append(el('i', null, a.e), el('b', null, a.t), el('span', null, a.how)); g.appendChild(d); });
+    const RL = { 1: 'лёгкая', 2: 'средняя', 3: 'редкая', 4: 'легендарная' };
+    (p.ach || []).forEach(a => {
+      const d = el('div', 'a' + (a.on ? '' : ' off') + ' r' + (+a.r || 2));
+      d.append(el('i', null, a.e), el('b', null, a.t), el('span', null, a.how));
+      if (a.r && !(a.s && !a.on)) d.appendChild(el('div', 'rl', RL[a.r] || ''));
+      const m = /^(\d+)\/(\d+)$/.exec(a.p || '');
+      if (!a.on && m) {
+        const e = el('em', null, a.p), u = el('u'), b = el('s');
+        b.style.width = Math.min(100, Math.round(100 * +m[1] / Math.max(1, +m[2]))) + '%';
+        u.appendChild(b); e.appendChild(u); d.appendChild(e);
+      }
+      g.appendChild(d);
+    });
     as.appendChild(g); app.appendChild(as);
 
     const upd = new Date((p.at || D.updated || 0) * 1000);
