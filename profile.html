@@ -172,16 +172,20 @@ footer{color:var(--soft);font-size:14px}
     // ---- витрина ----
     const sec = el('section', 'sec');
     sec.appendChild(el('h2', null, 'Витрина'));
-    sec.appendChild(el('p', null, 'Самые редкие карты из колоды. Лежат рубашкой, чтобы без спойлеров: что на них, узнаешь, только когда вытянешь сам(а)'));
+    sec.appendChild(el('p', null, 'Самые редкие карты из колоды. Нажми на карту, чтобы рассмотреть её'));
     const sh = el('div', 'shelf');
-    const items = p.showcase || [];
-    items.forEach(c => {
-      const rl = (D.rarity[c.rarity] || {}).label || '';
+    const items = (p.showcase || []).map(c => ({ img: IMG + c.id + '.webp', back: IMG + 'back.webp', num: c.num, title: c.title, rarity: c.rarity,
+      rlabel: (D.rarity[c.rarity] || {}).label || '', n: c.n, log: [[c.t || 0, c.say || '', 0]],
+      note: `Карта из колоды ${p.name}. Остальные карты и все предсказания видит только владелец колоды по личному коду.` }));
+    (p.showcase || []).forEach((c, i) => {
       const f = el('figure', 'sc ' + c.rarity), cd = el('div', 'card'), im = el('img');
-      im.src = IMG + 'back.webp'; im.alt = 'рубашка карты' + (rl ? ', редкость: ' + rl : ''); im.loading = 'lazy'; cd.appendChild(im);
-      cd.style.cursor = 'default';
-      const cap = el('figcaption'); cap.appendChild(el('b', null, rl || 'карта'));
-      cap.append(day(c.t));
+      im.src = IMG + c.id + '.webp'; im.alt = `${c.num} ${c.title}`; im.loading = 'lazy'; cd.appendChild(im);
+      cd.tabIndex = 0; cd.setAttribute('role', 'button'); cd.setAttribute('aria-label', `Открыть карту ${c.title}`);
+      const go = () => window.CardView && CardView.open(items, i);
+      cd.addEventListener('click', go);
+      cd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+      const cap = el('figcaption'); cap.appendChild(el('b', null, c.title));
+      cap.append(`${(D.rarity[c.rarity] || {}).label || ''} · ${day(c.t)}`);
       f.append(cd, cap); sh.appendChild(f);
     });
     if (!items.length) sh.appendChild(el('p', 'empty', 'Пока пусто. Витрина заполнится после первой карты дня (награда «Карта дня 🔮» за баллы канала)'));
