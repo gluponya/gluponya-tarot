@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Профиль · gluponya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Rubik:wght@600;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6EBD3; --sheet:#FFF8EC; --ink:#1B1418; --soft:#6E5A60; --line:#E2D2B4;
+  --coral:#E8553F; --orange:#F29A3A; --yellow:#F7D44C; --mint:#6CC08B; --blue:#4F86C6; --pink:#F49CB9; --plum:#6B3FA0;
+  --r-common:#8C7B72; --r-rare:#4F86C6; --r-myth:#8E54D6; --r-legend:#D9A21E;
+  --display:"Rubik","Arial Black",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A;
+  --r-common:#B9A79D; --r-rare:#7FB0EE; --r-myth:#C59BFF; --r-legend:#F7D44C; color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A;
+  --r-common:#B9A79D; --r-rare:#7FB0EE; --r-myth:#C59BFF; --r-legend:#F7D44C; color-scheme:dark}
+html,body{background:var(--paper);color:var(--ink)}
+body{margin:0;font:700 16px/1.45 var(--body);
+  background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) .9px,transparent 1.2px);background-size:7px 7px}
+.wrap{max-width:1000px;margin:0 auto;padding-block:22px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:26px}
+a{color:var(--ink)}
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:900 14px/1 var(--display);text-transform:uppercase;letter-spacing:.05em}
+.top a{text-decoration:none;padding:9px 12px;border:2.5px solid var(--ink);border-radius:999px;background:var(--sheet)}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+.ava{width:clamp(96px,18vw,148px);aspect-ratio:1;border-radius:50%;border:5px solid #1B1418;background:var(--yellow);display:grid;place-items:center;overflow:hidden;
+  box-shadow:6px 6px 0 var(--plum);font:900 56px/1 var(--display);color:#1B1418}
+.ava img{width:100%;height:100%;object-fit:cover;display:block}
+.nm{margin:0;font:900 clamp(34px,7vw,64px)/1 var(--display);overflow-wrap:anywhere;-webkit-text-stroke:clamp(4px,.8vw,7px) #1B1418;paint-order:stroke fill;color:var(--yellow)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:800 14px/1 var(--body);padding:8px 12px;border-radius:999px;background:var(--sheet);border:2px solid var(--ink)}
+.chip.ttl{background:var(--yellow);color:#1B1418;border-color:#1B1418;transform:rotate(-3deg);font-family:var(--display);font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.chip.sub{background:var(--plum);color:#FFF8EC}
+.chip.vip{background:var(--pink);color:#1B1418}
+.why{margin:8px 0 0;color:var(--soft);font-size:15px}
+.rank{margin-top:14px;display:grid;gap:6px;max-width:520px}
+.rank b{font:900 18px/1 var(--display);text-transform:uppercase;letter-spacing:.03em}
+.bar{height:16px;border-radius:999px;border:3px solid var(--ink);background:var(--sheet);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--coral),var(--orange),var(--yellow),var(--mint),var(--blue),var(--pink))}
+.rank span{color:var(--soft);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--sheet);border:3px solid var(--ink);border-radius:18px;padding:14px 16px;display:grid;gap:4px}
+.stat b{font:900 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{color:var(--soft);font-size:14px}
+h2{margin:0;font:900 24px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
+.sec{display:grid;gap:14px}
+.sec>p{margin:0;color:var(--soft)}
+.shelf{display:flex;flex-wrap:wrap;gap:clamp(16px,3vw,30px);padding:26px clamp(16px,3vw,30px) 30px;border-radius:24px;border:3px solid var(--ink);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--plum) 22%,var(--sheet)),var(--sheet) 70%);position:relative}
+.shelf::after{content:"";position:absolute;left:16px;right:16px;bottom:16px;height:10px;border-radius:6px;background:color-mix(in srgb,var(--ink) 18%,transparent)}
+.sc{margin:0;width:clamp(120px,24vw,190px);display:grid;gap:8px;z-index:1}
+.sc .card{aspect-ratio:360/620;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .18s ease;background:var(--sheet)}
+.sc .card img{width:100%;height:100%;object-fit:cover;display:block}
+.sc:nth-child(odd) .card{transform:rotate(-2.5deg)} .sc:nth-child(even) .card{transform:rotate(2deg)}
+.sc .card:hover{transform:translateY(-6px) rotate(0)}
+.sc .card:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
+.sc.rare .card{box-shadow:0 0 0 3px var(--r-rare),0 0 18px 2px color-mix(in srgb,var(--r-rare) 70%,transparent)}
+.sc.myth .card{box-shadow:0 0 0 3px var(--r-myth),0 0 22px 4px color-mix(in srgb,var(--r-myth) 70%,transparent)}
+.sc.legend .card{box-shadow:0 0 0 3px var(--r-legend),0 0 28px 6px color-mix(in srgb,var(--r-legend) 80%,transparent);animation:glow 2.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 3px var(--r-legend),0 0 40px 12px color-mix(in srgb,var(--pink) 70%,transparent)}}
+.sc figcaption{font:800 13px/1.25 var(--body);color:var(--soft)}
+.sc figcaption b{display:block;color:var(--ink);font:900 13px/1.2 var(--display);text-transform:uppercase}
+.empty{color:var(--soft);margin:0}
+.ach{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.a{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;background:var(--sheet);border:2.5px solid var(--ink);border-radius:14px;padding:10px 12px}
+.a i{font-style:normal;font-size:26px;grid-row:span 2}
+.a b{font:900 13px/1.1 var(--display);text-transform:uppercase;overflow-wrap:anywhere;min-width:0}
+.a span{font-size:13px;color:var(--soft);line-height:1.2;min-width:0}
+.a.off{opacity:.38;filter:grayscale(1);border-style:dashed}
+.btn{display:inline-block;font:900 15px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;padding:13px 16px;border-radius:14px;border:3px solid #1B1418;background:var(--yellow);color:#1B1418;text-decoration:none}
+.list{display:flex;flex-wrap:wrap;gap:8px}
+footer{color:var(--soft);font-size:14px}
+.demo{background:var(--mint);color:#1B1418}
+@media (max-width:560px){.hero{grid-template-columns:1fr;justify-items:start}}
+@media (prefers-reduced-motion:reduce){.sc.legend .card{animation:none}.sc .card{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <nav class="top"><a id="toAlbum" href="/tarot">← Колода gluponya</a><a href="https://twitch.tv/gluponya" rel="noopener">twitch.tv/gluponya</a></nav>
+  <p class="empty" id="msg">Загружаю профиль…</p>
+</div>
+<script src="cardview.js"></script>
+<script>
+(() => {
+  const GH = {"owner": "gluponya", "repo": "gluponya-tarot"};                                  // на GitHub сюда подставляется {owner, repo}
+  let IMG = 'cards/';
+  const DEMO = /[?&]demo=/.test(location.search);
+  const U = (new URLSearchParams(location.search).get('u') || '').toLowerCase().replace(/^@/, '');
+  const ALBUM = GH ? './' : '/tarot';
+  const app = document.getElementById('app');
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const pl = (n, a, b, c) => { n = Math.abs(n); return n % 10 === 1 && n % 100 !== 11 ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? b : c; };
+  const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const day = t => { if (!t) return 'в первые дни колоды'; const d = new Date(t * 1000); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+  document.getElementById('toAlbum').href = ALBUM;
+
+  function load() {
+    if (!GH) return fetch('/hub/profile/state' + (DEMO ? '?demo=1' : ''), { cache: 'no-store' }).then(r => r.json());
+    const api = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/profiles.json?ref=data`;
+    const raw = `https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/data/profiles.json?t=` + Date.now();
+    const get = (u, h) => fetch(u, { cache: 'no-store', headers: h || {} }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
+    return get(api, { Accept: 'application/vnd.github.raw+json' }).catch(() => get(raw));
+  }
+
+  function nobody(D, text) {
+    const s = el('section', 'sec');
+    s.appendChild(el('h2', null, text));
+    const names = Object.values(D.profiles || {}).sort((a, b) => (b.pts || 0) - (a.pts || 0));
+    if (names.length) {
+      s.appendChild(el('p', null, 'Профили зрителей канала:'));
+      const l = el('div', 'list');
+      names.forEach(p => { const a = el('a', 'chip', p.name); a.href = '?u=' + encodeURIComponent(p.login); l.appendChild(a); });
+      s.appendChild(l);
+    }
+    s.appendChild(el('p', null, 'Свой профиль появится здесь, если написать !профиль в чате на стриме.'));
+    app.appendChild(s);
+  }
+
+  function render(D) {
+    document.getElementById('msg').remove();
+    const P = D.profiles || {};
+    const p = DEMO ? Object.values(P)[0] : P[U];
+    if (!p) return nobody(D, U ? 'Такого профиля пока нет' : 'Профили');
+    document.title = `${p.name} · профиль gluponya`;
+    if (D.demo) app.appendChild(el('span', 'chip demo', '🧪 ТЕСТОВЫЙ ПРОФИЛЬ, выдуманные данные'));
+
+    // ---- шапка ----
+    const hero = el('header', 'hero');
+    const ava = el('div', 'ava');
+    if (/^https:\/\/static-cdn\.jtvnw\.net\/[\w\-./]+$/.test(p.avatar || '')) { const im = el('img'); im.src = p.avatar; im.alt = ''; ava.appendChild(im); }
+    else ava.textContent = (p.name || '?').slice(0, 1).toUpperCase();
+    const box = el('div');
+    box.appendChild(el('h1', 'nm', p.name));
+    const meta = el('div', 'meta');
+    if (p.title) meta.appendChild(el('span', 'chip ttl', p.title));
+    if (p.sub) meta.appendChild(el('span', 'chip sub', `💜 саб ${p.sub} ${pl(p.sub, 'месяц', 'месяца', 'месяцев')}`));
+    if (p.vip) meta.appendChild(el('span', 'chip vip', '💎 VIP'));
+    if (p.mod) meta.appendChild(el('span', 'chip', '🗡️ модератор'));
+    if (p.since) meta.appendChild(el('span', 'chip', (p.follow ? '🐾 фоллоу с ' : '🐾 с нами с ') + p.since));
+    box.appendChild(meta);
+    if (p.title && p.why) box.appendChild(el('p', 'why', p.why));
+    const rk = el('div', 'rank');
+    rk.appendChild(el('b', null, p.rank));
+    const bar = el('div', 'bar'), bi = el('i'); bi.style.width = Math.max(3, Math.min(100, p.pct || 0)) + '%'; bar.appendChild(bi);
+    bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', `до следующего звания ${p.pct}%`);
+    rk.append(bar, el('span', null, (p.pct >= 100 ? 'высшее звание канала' : `до следующего звания ${p.pct}%`) + ` · ${p.pts} очков`));
+    box.appendChild(rk);
+    hero.append(ava, box); app.appendChild(hero);
+
+    // ---- цифры ----
+    const st = el('section', 'stats');
+    const stat = (n, t) => { const d = el('div', 'stat'); d.append(el('b', null, n), el('span', null, t)); st.appendChild(d); };
+    stat(p.msgs, pl(p.msgs, 'сообщение в чате', 'сообщения в чате', 'сообщений в чате'));
+    stat(p.streams, pl(p.streams, 'стрим с нами', 'стрима с нами', 'стримов с нами'));
+    if (p.days != null) stat(p.days, pl(p.days, 'день на канале', 'дня на канале', 'дней на канале'));
+    stat(`${p.cards || 0}/${p.total || D.total}`, 'карт таро собрано');
+    if (p.wins) stat(p.wins, pl(p.wins, 'победа в !угадай', 'победы в !угадай', 'побед в !угадай'));
+    app.appendChild(st);
+
+    // ---- витрина ----
+    const sec = el('section', 'sec');
+    sec.appendChild(el('h2', null, 'Витрина'));
+    sec.appendChild(el('p', null, 'Самые редкие карты из колоды. Нажми на карту, чтобы рассмотреть её'));
+    const sh = el('div', 'shelf');
+    const items = (p.showcase || []).map(c => ({ img: IMG + c.id + '.webp', back: IMG + 'back.webp', num: c.num, title: c.title, rarity: c.rarity,
+      rlabel: (D.rarity[c.rarity] || {}).label || '', n: c.n, log: [[c.t || 0, c.say || '', 0]],
+      note: `Карта из колоды ${p.name}. Остальные карты и все предсказания видит только владелец колоды по личному коду.` }));
+    (p.showcase || []).forEach((c, i) => {
+      const f = el('figure', 'sc ' + c.rarity), cd = el('div', 'card'), im = el('img');
+      im.src = IMG + c.id + '.webp'; im.alt = `${c.num} ${c.title}`; im.loading = 'lazy'; cd.appendChild(im);
+      cd.tabIndex = 0; cd.setAttribute('role', 'button'); cd.setAttribute('aria-label', `Открыть карту ${c.title}`);
+      const go = () => window.CardView && CardView.open(items, i);
+      cd.addEventListener('click', go);
+      cd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+      const cap = el('figcaption'); cap.appendChild(el('b', null, c.title));
+      cap.append(`${(D.rarity[c.rarity] || {}).label || ''} · ${day(c.t)}`);
+      f.append(cd, cap); sh.appendChild(f);
+    });
+    if (!items.length) sh.appendChild(el('p', 'empty', 'Пока пусто. Витрина заполнится после первой карты дня (награда «Карта дня 🔮» за баллы канала)'));
+    sec.appendChild(sh);
+    const own = el('a', 'btn', '🔮 Открыть свою колоду'); own.href = ALBUM;
+    sec.appendChild(own);
+    app.appendChild(sec);
+
+    // ---- ачивки ----
+    const as = el('section', 'sec');
+    as.appendChild(el('h2', null, `Ачивки ${p.have}/${p.all}`));
+    const g = el('div', 'ach');
+    (p.ach || []).forEach(a => { const d = el('div', 'a' + (a.on ? '' : ' off')); d.append(el('i', null, a.e), el('b', null, a.t), el('span', null, a.how)); g.appendChild(d); });
+    as.appendChild(g); app.appendChild(as);
+
+    const upd = new Date((p.at || D.updated || 0) * 1000);
+    app.appendChild(el('footer', null, `Цифры обновляются, когда пишешь !профиль в чате (последний раз ${upd.toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}). Витрина обновляется сама после каждой карты. Убрать страницу: !профиль скрыть`));
+  }
+
+  if (GH) IMG = 'cards/';
+  load().then(render).catch(() => { document.getElementById('msg').textContent = 'Профиль не загрузился. Обнови страницу через минутку'; });
+})();
+</script>
+</body>
+</html>
