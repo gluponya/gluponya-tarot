@@ -21,8 +21,8 @@
 .cv-card.legend .cv-holo,.cv-card.myth .cv-holo{opacity:.32}
 .cv-info{color:#FFF8EC;display:grid;gap:12px;max-height:78vh;overflow-y:auto;overflow-x:hidden;padding:4px 6px 4px 4px;min-width:0}
 .cv-num{font:900 14px/1 "Rubik",system-ui,sans-serif;letter-spacing:.12em;opacity:.8}
-.cv-title{margin:0;overflow-wrap:anywhere;font:900 clamp(26px,3.4vw,40px)/1.05 "Rubik",system-ui,sans-serif;text-transform:uppercase;letter-spacing:.02em;
-  -webkit-text-stroke:6px #1B1418;paint-order:stroke fill;color:#F7D44C}
+.cv-title{margin:0;overflow-wrap:anywhere;font:900 clamp(26px,3.4vw,40px)/1.05 "Rubik",system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;
+  color:#F7D44C;text-shadow:3.5px 0.0px 0 #1B1418,3.2px 1.3px 0 #1B1418,2.5px 2.5px 0 #1B1418,1.3px 3.2px 0 #1B1418,0.0px 3.5px 0 #1B1418,-1.3px 3.2px 0 #1B1418,-2.5px 2.5px 0 #1B1418,-3.2px 1.3px 0 #1B1418,-3.5px 0.0px 0 #1B1418,-3.2px -1.3px 0 #1B1418,-2.5px -2.5px 0 #1B1418,-1.3px -3.2px 0 #1B1418,-0.0px -3.5px 0 #1B1418,1.3px -3.2px 0 #1B1418,2.5px -2.5px 0 #1B1418,3.2px -1.3px 0 #1B1418,0 4px 0 #1B1418}
 .cv-chips{display:flex;flex-wrap:wrap;gap:8px}
 .cv-chip{font:800 14px/1 "Nunito",system-ui,sans-serif;padding:7px 11px;border-radius:999px;border:2px solid #1B1418;background:#FFF8EC;color:#1B1418}
 .cv-chip.r{color:#fff}
@@ -104,7 +104,15 @@
     cardEl.className = 'cv-card ' + (it.rarity || '');
     info.replaceChildren();
     info.appendChild(el('div', 'cv-num', it.num === '✦' ? '✦ ОСОБАЯ КАРТА' : `АРКАН ${it.num}`));
-    const h = el('h2', 'cv-title', it.title); h.id = 'cv-h'; info.appendChild(h);
+    const h = el('h2', 'cv-title'); h.id = 'cv-h'; h.setAttribute('aria-label', it.title);
+    // буквы в цветах колоды, как надпись на самой карте
+    const RAINBOW = ['#E8553F', '#F29A3A', '#F7D44C', '#6CC08B', '#4F86C6', '#F49CB9'];
+    let k = 0;
+    for (const ch of String(it.title || '')) {
+      if (/\s/.test(ch)) { h.append(ch); continue; }
+      const sp = el('span', null, ch); sp.style.color = RAINBOW[k++ % RAINBOW.length]; sp.setAttribute('aria-hidden', 'true'); h.appendChild(sp);
+    }
+    info.appendChild(h);
     st.ui.root.setAttribute('aria-labelledby', 'cv-h');
     const chips = el('div', 'cv-chips');
     const r = el('span', 'cv-chip r', it.rlabel || ''); r.style.background = RC[it.rarity] || '#8C7B72'; chips.appendChild(r);
