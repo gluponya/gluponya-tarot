@@ -19,10 +19,11 @@
 .cv-glare{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;opacity:.85}
 .cv-holo{position:absolute;inset:0;pointer-events:none;mix-blend-mode:color-dodge;opacity:0}
 .cv-card.legend .cv-holo,.cv-card.myth .cv-holo{opacity:.32}
-.cv-info{color:#FFF8EC;display:grid;gap:12px;max-height:78vh;overflow-y:auto;overflow-x:hidden;padding:4px 6px 4px 4px;min-width:0}
+.cv-info{container-type:inline-size;color:#FFF8EC;display:grid;gap:12px;max-height:78vh;overflow-y:auto;overflow-x:hidden;padding:4px 6px 4px 4px;min-width:0}
 .cv-num{font:900 14px/1 "Rubik",system-ui,sans-serif;letter-spacing:.12em;opacity:.8}
-.cv-title{margin:0;overflow-wrap:anywhere;font:900 clamp(26px,3.4vw,40px)/1.05 "Rubik",system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;
-  color:#F7D44C;text-shadow:3.5px 0.0px 0 #1B1418,3.2px 1.3px 0 #1B1418,2.5px 2.5px 0 #1B1418,1.3px 3.2px 0 #1B1418,0.0px 3.5px 0 #1B1418,-1.3px 3.2px 0 #1B1418,-2.5px 2.5px 0 #1B1418,-3.2px 1.3px 0 #1B1418,-3.5px 0.0px 0 #1B1418,-3.2px -1.3px 0 #1B1418,-2.5px -2.5px 0 #1B1418,-1.3px -3.2px 0 #1B1418,-0.0px -3.5px 0 #1B1418,1.3px -3.2px 0 #1B1418,2.5px -2.5px 0 #1B1418,3.2px -1.3px 0 #1B1418,0 4px 0 #1B1418}
+.cv-title{margin:0;overflow-wrap:anywhere;font:900 clamp(26px,3.4vw,40px)/1.05 "Rubik",system-ui,sans-serif;font-size:min(clamp(26px,3.4vw,40px),calc((100cqw - 46px) / var(--L,8) / .86));text-transform:uppercase;letter-spacing:.06em;overflow-wrap:normal;
+  justify-self:start;max-width:100%;box-sizing:border-box;padding:10px 16px 12px;background:#FFF8EC;border:3px solid #1B1418;border-radius:16px;box-shadow:0 4px 0 #1B1418;
+  color:#F7D44C;text-shadow:1.2px 0.0px 0 #1B1418,1.04px 0.6px 0 #1B1418,0.6px 1.04px 0 #1B1418,0.0px 1.2px 0 #1B1418,-0.6px 1.04px 0 #1B1418,-1.04px 0.6px 0 #1B1418,-1.2px 0.0px 0 #1B1418,-1.04px -0.6px 0 #1B1418,-0.6px -1.04px 0 #1B1418,-0.0px -1.2px 0 #1B1418,0.6px -1.04px 0 #1B1418,1.04px -0.6px 0 #1B1418,2.4px 0.0px 0 #1B1418,2.32px 0.62px 0 #1B1418,2.08px 1.2px 0 #1B1418,1.7px 1.7px 0 #1B1418,1.2px 2.08px 0 #1B1418,0.62px 2.32px 0 #1B1418,0.0px 2.4px 0 #1B1418,-0.62px 2.32px 0 #1B1418,-1.2px 2.08px 0 #1B1418,-1.7px 1.7px 0 #1B1418,-2.08px 1.2px 0 #1B1418,-2.32px 0.62px 0 #1B1418,-2.4px 0.0px 0 #1B1418,-2.32px -0.62px 0 #1B1418,-2.08px -1.2px 0 #1B1418,-1.7px -1.7px 0 #1B1418,-1.2px -2.08px 0 #1B1418,-0.62px -2.32px 0 #1B1418,-0.0px -2.4px 0 #1B1418,0.62px -2.32px 0 #1B1418,1.2px -2.08px 0 #1B1418,1.7px -1.7px 0 #1B1418,2.08px -1.2px 0 #1B1418,2.32px -0.62px 0 #1B1418,0 3.5px 0 #1B1418}
 .cv-chips{display:flex;flex-wrap:wrap;gap:8px}
 .cv-chip{font:800 14px/1 "Nunito",system-ui,sans-serif;padding:7px 11px;border-radius:999px;border:2px solid #1B1418;background:#FFF8EC;color:#1B1418}
 .cv-chip.r{color:#fff}
@@ -108,6 +109,7 @@
     // буквы в цветах колоды, как надпись на самой карте
     const RAINBOW = ['#E8553F', '#F29A3A', '#F7D44C', '#6CC08B', '#4F86C6', '#F49CB9'];
     let k = 0;
+    h.style.setProperty('--L', Math.max(6, ...String(it.title || '').split(/\s+/).map(w => w.length)));
     for (const ch of String(it.title || '')) {
       if (/\s/.test(ch)) { h.append(ch); continue; }
       const sp = el('span', null, ch); sp.style.color = RAINBOW[k++ % RAINBOW.length]; sp.setAttribute('aria-hidden', 'true'); h.appendChild(sp);
