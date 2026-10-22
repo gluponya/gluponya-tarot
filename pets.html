@@ -38,6 +38,10 @@ h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spa
 .now .pic{aspect-ratio:1;border-radius:18px;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--c,var(--yellow)) 55%,transparent),transparent 70%)}
 .now .pic img{width:100%;height:100%;object-fit:contain;display:block;animation:bob 4.2s ease-in-out infinite;transform-origin:50% 88%}
 @keyframes bob{50%{transform:rotate(1.6deg) translateY(-4px)}0%,100%{transform:rotate(-1.6deg)}}
+.now .pic.egg{perspective:900px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.now .pic.egg:active{cursor:grabbing}
+.now .pic.egg .spin{width:100%;height:100%;will-change:transform}
+.now .pic.egg img{pointer-events:none;-webkit-user-drag:none}
 .now .info{display:grid;gap:10px;min-width:0}
 .tag{display:inline-flex;align-items:center;gap:8px;font:900 13px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--soft);justify-self:start}
 .tag b{font-size:14px;letter-spacing:.06em;background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:999px;padding:6px 11px;font-variant-numeric:tabular-nums}
@@ -73,6 +77,8 @@ h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spa
 .how code.rw{background:var(--pink)}
 footer{color:var(--soft);font-size:14px}
 footer a{color:var(--ink)}
+a.nick{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent)}
+a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
 
 body.obs{background-size:9px 9px}
 body.obs .wrap{max-width:none;width:1920px;height:1080px;box-sizing:border-box;padding:48px 64px;gap:30px;overflow:hidden;align-content:start}
@@ -126,6 +132,20 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
   const CHAR = { normal: 'обычный', happy: 'весёлый', lazy: 'ленивый', grumpy: 'вредный' };
   const STAGE = { baby: 'малыш', child: 'ребёнок', teen: 'подросток', adult: 'взрослый' };
   const color = f => `var(--${FAM[f] ? f : 'yellow'})`;
+  // ники — ссылки на профиль зрителя, но только у кого профиль есть и не скрыт (иначе ведём на «такого профиля нет»)
+  const PROF = {};
+  function loadProfiles() {
+    const get = (u, h) => fetch(u, { cache: 'no-store', headers: h || {} }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
+    const src = !GH ? get('/hub/profile/state')
+      : get(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/profiles.json?ref=data`, { Accept: 'application/vnd.github.raw+json' })
+        .catch(() => get(`https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/data/profiles.json?t=` + Date.now()));
+    return src.then(j => { Object.values(j.profiles || {}).forEach(p => { if (!p || !p.login) return;
+      PROF[String(p.login).toLowerCase()] = p.login; if (p.name) PROF[String(p.name).toLowerCase()] = p.login; }); return true; })
+      .catch(() => false);
+  }
+  const profileHref = (...names) => { for (const n of names) { const k = PROF[String(n || '').toLowerCase().replace(/^@/, '')]; if (k) return (GH ? 'profile.html' : '/profile') + '?u=' + encodeURIComponent(k); } return ''; };
+  // ник жирным; если есть профиль — ещё и ссылкой на него
+  const nick = (name, login) => { const h = profileHref(login, name); return h ? `<a class="nick" href="${esc(h)}"><b>${esc(name)}</b></a>` : `<b>${esc(name)}</b>`; };
   const plural = (n, a, b, c) => { n = Math.abs(n) % 100; const m = n % 10; return n > 10 && n < 20 ? c : m === 1 ? a : m > 1 && m < 5 ? b : c; };
 
   function facts(p) {
@@ -139,15 +159,43 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
   function carers(p, n) {
     const c = (p.carers || []).slice(0, n);
     if (!c.length) return '';
-    return 'Растили: ' + c.map(([who, k]) => `<b>${esc(who)}</b> ×${k}`).join(', ');
+    return 'Растили: ' + c.map(([who, k]) => `${nick(who)} ×${k}`).join(', ');
+  }
+
+  // яйцо крутится мышкой/пальцем, как карты таро: бросок с инерцией, потом мягко встаёт лицом (кратно 180°)
+  function spinEgg(pic) {
+    const w = pic && pic.querySelector('.spin');
+    if (!w || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    let ry = 0, rx = 0, vy = 0, vx = 0, drag = null, raf = 0;
+    const step = () => {
+      if (!drag) {
+        if (Math.abs(vy) > .15 || Math.abs(vx) > .15) { ry += vy; rx = Math.max(-30, Math.min(30, rx + vx)); vy *= .95; vx *= .9; }
+        else { vy = vx = 0; const d = Math.round(ry / 180) * 180 - ry; ry += d * .1; rx *= .88;
+          if (Math.abs(d) < .2 && Math.abs(rx) < .2) { ry = 0; rx = 0; w.style.transform = ''; raf = 0; return; } }
+      }
+      w.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      raf = requestAnimationFrame(step);
+    };
+    const go = () => { if (!raf) raf = requestAnimationFrame(step); };
+    pic.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, moved: 0 }; vx = vy = 0; pic.setPointerCapture(e.pointerId); go(); });
+    pic.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      drag.x = e.clientX; drag.y = e.clientY; drag.moved += Math.abs(dx) + Math.abs(dy);
+      ry += dx * .6; rx = Math.max(-30, Math.min(30, rx - dy * .35)); vy = dx * .6; vx = -dy * .35;
+    });
+    const up = () => { if (!drag) return; if (drag.moved < 6) vy = 14; drag = null; };   // простой тап — сам прокручивается
+    pic.addEventListener('pointerup', up); pic.addEventListener('pointercancel', up);
   }
 
   function drawNow(D) {
     const box = $('now');
     if (D.egg && !D.now) {
-      box.innerHTML = `<div class="now" style="--c:var(--yellow)"><div class="pic"><img src="${IMG(D.egg.img)}" alt="Яйцо"></div>
+      box.innerHTML = `<div class="now" style="--c:var(--yellow)"><div class="pic egg"><div class="spin"><img src="${IMG(D.egg.img)}" alt="Яйцо" draggable="false"></div></div>
         <div class="info"><div class="tag"><b>№${D.egg.gen}</b>Сейчас</div><p class="nm none">Яйцо греется 🥚</p>
-        <div class="carers">Кто вылупится, решает еда: сладкое, острое, рыбка или зелень. Счёт секретный, подсказка только в свечении яйца.</div></div></div>`;
+        <div class="carers">Кто вылупится, решает еда: сладкое, острое, рыбка или зелень. Счёт секретный, подсказка только в свечении яйца.</div>
+        ${OBS ? '' : '<div class="carers">Яйцо можно покрутить мышкой или пальцем.</div>'}</div></div>`;
+      spinEgg(box.querySelector('.egg'));
       return;
     }
     const p = D.now;
@@ -165,7 +213,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
       <div class="info"><div class="tag"><b>№${p.gen}</b>Сейчас растёт${p.hatched ? ' · вылупился ' + esc(p.hatched) : ''}</div>
       ${p.name ? `<p class="nm">${esc(p.name)}</p>` : `<p class="nm none">${esc(f[0])} пока без имени</p>`}
       <div class="facts">${facts(p)}</div>
-      ${p.name && p.named_by ? `<div class="carers">Автор имени: <b>${esc(p.named_by)}</b></div>` : ''}
+      ${p.name && p.named_by ? `<div class="carers">Автор имени: ${nick(p.named_by)}</div>` : ''}
       ${naming}
       <div class="carers">${carers(p, 5)}</div></div></div>`;
   }
@@ -179,7 +227,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
         <div class="pic"><span class="num">№${p.gen}</span><img loading="lazy" src="${IMG(p.img)}" alt="${esc(p.name || f[0])}"></div>
         ${p.name ? `<h3>${esc(p.name)}</h3>` : `<h3 class="none">без имени</h3>`}
         <div class="who"><b>${esc(f[0])} ${f[1]}</b>${p.part ? ' + ' + esc((PART[p.part] || '').replace(/ \S+$/, '')) : ', чистокровный'}${p.char && p.phase === 'adult' ? ' · ' + esc(CHAR[p.char] || '') : p.phase !== 'adult' ? ' · ' + esc(STAGE[p.phase] || '') : ''}</div>
-        <div class="meta">${p.hatched || p.born ? 'вылупился ' + esc(p.hatched || p.born) : ''}${p.done ? ' · вырос ' + esc(p.done) : ''}${p.named_by ? `<br>автор имени: <b>${esc(p.named_by)}</b>` : ''}${p.owner && (p.owner.name || p.owner.login) ? `<br>живёт у <b>${esc(p.owner.name || p.owner.login)}</b>` : ''}${OBS ? '' : (p.carers && p.carers.length ? '<br>' + carers(p, 3) : '')}</div>
+        <div class="meta">${p.hatched || p.born ? 'вылупился ' + esc(p.hatched || p.born) : ''}${p.done ? ' · вырос ' + esc(p.done) : ''}${p.named_by ? `<br>автор имени: ${nick(p.named_by)}` : ''}${p.owner && (p.owner.name || p.owner.login) ? `<br>живёт у ${nick(p.owner.name || p.owner.login, p.owner.login)}` : ''}${OBS ? '' : (p.carers && p.carers.length ? '<br>' + carers(p, 3) : '')}</div>
       </figure>`;
     }).join('') : `<p class="empty">${D.now ? 'Первый питомец ещё растёт, скоро он будет здесь 🌱' : 'Первый питомец ещё в яйце 🥚'}</p>`;
   }
@@ -202,8 +250,8 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
                     { gen: 1, family: 'sweet', part: 'fins', char: 'lazy', phase: 'adult', name: null, named_by: '', img: 'sweet_adult_fins_lazy', hatched: '24.09 21:15', done: '28.09 22:50', carers: [] }] };
   }
 
-  let last = '';
-  function take(j) { const s = JSON.stringify(j); if (s !== last) { last = s; draw(j); } }
+  let last = '', lastD = null;
+  function take(j) { const s = JSON.stringify(j); if (s !== last) { last = s; lastD = j; draw(j); } }
   function get() {
     if (!GH) return fetch('/hub/tama/pets', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
     const api = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/pets.json?ref=data`;
@@ -217,7 +265,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
     get().then(take).catch(() => { if (!last) $('grid').innerHTML = '<p class="empty">Галерея не загрузилась. Обнови страницу через минутку</p>'; })
       .finally(() => setTimeout(tick, GH ? 90000 : 5000));
   }
-  if (DEMO) draw(demo()); else tick();
+  if (DEMO) draw(demo()); else { tick(); loadProfiles().then(ok => { if (ok && lastD) draw(lastD); }); }
 })();
 </script>
 </body>
