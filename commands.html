@@ -4,128 +4,223 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Команды чата · gluponya</title>
+<meta name="description" content="Все команды чата на стриме twitch.tv/gluponya и награды за баллы канала">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Rubik:wght@600;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#F6EBD3; --sheet:#FFF8EC; --ink:#1B1418; --soft:#6E5A60; --line:#E2D2B4;
+  --paper:#F6EBD3; --sheet:#FFF8EC; --ink:#1B1418; --soft:#6E5A60; --line:#E2D2B4; --focus:#6B3FA0;
   --coral:#E8553F; --orange:#F29A3A; --yellow:#F7D44C; --mint:#6CC08B; --blue:#4F86C6; --pink:#F49CB9; --plum:#6B3FA0;
   --display:"Rubik","Arial Black",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --tap:44px; --cw:10.5rem; --bar:104px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; color-scheme:dark}}
-:root[data-theme="dark"]{--paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; color-scheme:dark}
+  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; --focus:#F7D44C; color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; --focus:#F7D44C; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@media (prefers-reduced-motion: no-preference){html{scroll-behavior:smooth}}
 html,body{background:var(--paper);color:var(--ink)}
-body{margin:0;font:700 16px/1.45 var(--body);
+body{margin:0;font:700 16px/1.45 var(--body);overflow-x:hidden;
   background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) .9px,transparent 1.2px);background-size:7px 7px}
-.wrap{max-width:1000px;margin:0 auto;padding-block:22px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:26px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1000px;margin:0 auto;padding-block:22px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
 a{color:var(--ink)}
-.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:900 14px/1 var(--display);text-transform:uppercase;letter-spacing:.05em}
-.top a{text-decoration:none;padding:9px 12px;border:2.5px solid var(--ink);border-radius:999px;background:var(--sheet)}
-.nm{margin:0;font:900 clamp(34px,7vw,64px)/1 var(--display);overflow-wrap:anywhere;-webkit-text-stroke:clamp(4px,.8vw,7px) #1B1418;paint-order:stroke fill;color:var(--yellow)}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* шапка */
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:900 14px/1.1 var(--display);text-transform:uppercase;letter-spacing:.05em}
+.top a{display:inline-flex;align-items:center;min-height:var(--tap);max-width:100%;text-decoration:none;padding:8px 14px;border:2.5px solid var(--ink);border-radius:999px;background:var(--sheet);overflow-wrap:anywhere}
+.nm{margin:0;font:900 clamp(34px,8vw,64px)/1.05 var(--display);overflow-wrap:break-word;-webkit-text-stroke:clamp(4px,.8vw,7px) #1B1418;paint-order:stroke fill;color:var(--yellow)}
 .lead{margin:10px 0 0;color:var(--soft);max-width:640px}
-.find{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.find input{flex:1 1 260px;min-width:0;font:800 16px/1 var(--body);color:var(--ink);background:var(--sheet);border:3px solid var(--ink);border-radius:14px;padding:12px 14px}
-.find input:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+main>.sec{margin-top:10px}
+
+/* поиск: прилипает к верху, на всю ширину окна */
+.bar{position:sticky;top:0;z-index:5;display:grid;gap:6px;padding-block:10px 12px;background:var(--paper);
+  box-shadow:0 0 0 100vmax var(--paper);clip-path:inset(0 -100vmax -2px);border-bottom:2px solid var(--line)}
+.bar label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font:800 14px/1.2 var(--body);color:var(--soft)}
+.bar label b{font-weight:800;color:var(--ink)}
+.count{font-variant-numeric:tabular-nums;white-space:nowrap}
+.field{display:grid;grid-template-columns:minmax(0,1fr) var(--tap);gap:8px}
+.field input{width:100%;min-width:0;min-height:var(--tap);font:800 16px/1.2 var(--body);color:var(--ink);background:var(--sheet);border:3px solid var(--ink);border-radius:14px;padding:8px 14px;-webkit-appearance:none;appearance:none}
+.field input::placeholder{color:var(--soft);opacity:1}
+.up{width:var(--tap);height:var(--tap);display:grid;place-items:center;font:900 20px/1 var(--display);color:var(--ink);background:var(--sheet);border:3px solid var(--ink);border-radius:14px;cursor:pointer;padding:0}
+
+/* разделы */
 .jump{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;gap:6px;font:800 14px/1 var(--body);padding:8px 12px;border-radius:999px;background:var(--sheet);border:2px solid var(--ink);text-decoration:none}
-h2{margin:0;font:900 24px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
-.sec{display:grid;gap:12px;scroll-margin-top:12px}
-.list{display:grid;gap:10px}
-.row{display:grid;grid-template-columns:minmax(150px,auto) 1fr;gap:4px 14px;align-items:start;background:var(--sheet);border:2.5px solid var(--ink);border-radius:16px;padding:12px 14px}
-.cmd{justify-self:start;font:900 16px/1.1 var(--display);background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:10px;padding:7px 10px;cursor:pointer;white-space:nowrap}
-.cmd:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:var(--tap);max-width:100%;font:800 14px/1.2 var(--body);padding:6px 14px;border-radius:999px;background:var(--sheet);border:2px solid var(--ink);text-decoration:none}
+h2{margin:0;font:900 clamp(20px,5.6vw,24px)/1.15 var(--display);text-transform:uppercase;letter-spacing:.04em;overflow-wrap:break-word}
+.sec{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;scroll-margin-top:calc(var(--bar) + 12px)}
+.list{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+
+/* команда: колонка кнопки одной ширины во всех строках, описание всегда с одного края */
+.row{display:grid;grid-template-columns:var(--cw) minmax(0,1fr);gap:6px 16px;align-items:start;background:var(--sheet);border:2.5px solid var(--ink);border-radius:16px;padding:12px 14px}
+.cmd{justify-self:start;max-width:100%;min-height:var(--tap);display:inline-flex;align-items:center;text-align:left;font:900 16px/1.15 var(--display);background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:10px;padding:6px 12px;cursor:pointer;overflow-wrap:anywhere}
 .cmd.ok{background:var(--mint)}
-.d{min-width:0;overflow-wrap:anywhere}
+.d{min-width:0;padding-top:9px;overflow-wrap:break-word}
 .al{display:block;color:var(--soft);font-size:14px;margin-top:3px}
-.who{display:inline-block;margin-left:6px;font:800 12px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;padding:4px 7px;border-radius:999px;background:var(--plum);color:#FFF8EC;vertical-align:2px}
+.al span,.nw{white-space:nowrap}
+.who{display:inline-block;margin-left:6px;font:800 12px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;padding:4px 7px;border-radius:999px;background:var(--plum);color:#FFF8EC;vertical-align:2px;white-space:nowrap}
 .who.vip{background:var(--pink);color:#1B1418}
-.rw{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
-.r{background:var(--sheet);border:2.5px solid var(--ink);border-radius:16px;padding:12px 14px;display:grid;gap:6px}
-.r b{font:900 15px/1.15 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
-.r i{font-style:normal;font:900 13px/1 var(--display);justify-self:start;padding:5px 8px;border-radius:999px;background:var(--plum);color:#FFF8EC}
-.r span{color:var(--soft);font-size:14px;line-height:1.3}
-.empty{color:var(--soft);margin:0}
+
+/* награды: заголовок, цена и описание на одной высоте во всём ряду */
+.rw{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px}
+.r{display:grid;grid-template-rows:auto auto 1fr;gap:8px;align-content:start;background:var(--sheet);border:2.5px solid var(--ink);border-radius:16px;padding:12px 14px}
+@supports (grid-template-rows:subgrid){.r{grid-row:span 3;grid-template-rows:subgrid;row-gap:8px}}
+.r b{font:900 15px/1.2 var(--display);text-transform:uppercase;overflow-wrap:break-word;align-self:start}
+.r i{font-style:normal;font:900 13px/1 var(--display);justify-self:start;align-self:start;padding:6px 9px;border-radius:999px;background:var(--plum);color:#FFF8EC;white-space:nowrap}
+.r span{color:var(--soft);font-size:14px;line-height:1.35;overflow-wrap:break-word}
+
+.note,.empty{color:var(--soft);margin:0}
+.state{display:grid;gap:12px;justify-items:start;min-height:40vh;align-content:start}
+.again{min-height:var(--tap);font:900 15px/1 var(--display);background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:12px;padding:0 16px;cursor:pointer}
 footer{color:var(--soft);font-size:14px}
-@media (max-width:560px){.row{grid-template-columns:1fr}}
+
+/* «скопировано» — поверх страницы, ничего не сдвигает */
+.toast{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:10;max-width:calc(100vw - 32px);transform:translate(-50%,0);
+  font:800 15px/1.3 var(--body);color:#1B1418;background:var(--mint);border:2.5px solid #1B1418;border-radius:14px;padding:10px 16px;box-shadow:0 4px 0 #1B1418;
+  opacity:0;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion: no-preference){.toast{transition:opacity .15s,transform .15s;transform:translate(-50%,6px)}.toast.on{transform:translate(-50%,0)}}
+
+@media (max-width:560px){
+  .row{grid-template-columns:minmax(0,1fr)}
+  .d{padding-top:0}
+}
+@media (forced-colors: active){.cmd,.chip,.top a,.row,.r,.up{border-color:CanvasText}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app">
-  <nav class="top"><a id="toAlbum" href="/tarot">← Колода gluponya</a><a href="https://twitch.tv/gluponya" rel="noopener">twitch.tv/gluponya</a></nav>
-  <header>
+  <nav class="top" aria-label="Ссылки"><a id="toAlbum" href="/tarot">← Колода gluponya</a><a href="https://twitch.tv/gluponya" rel="noopener">twitch.tv/gluponya</a></nav>
+  <header id="top">
     <h1 class="nm">Команды чата</h1>
-    <p class="lead">Пиши их в чат на стриме twitch.tv/gluponya. Нажми на команду, чтобы скопировать</p>
+    <p class="lead">Пиши их в чат на стриме twitch.tv/gluponya. Нажми на команду — она скопируется, останется вставить в чат</p>
   </header>
-  <p class="empty" id="msg">Загружаю команды…</p>
+  <main class="state" id="msg"><p class="empty" role="status">Загружаю команды…</p></main>
 </div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 (() => {
   const GH = {"owner": "gluponya", "repo": "gluponya-tarot"};                                  // на GitHub сюда подставляется {owner, repo}
   const app = document.getElementById('app');
   const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-  const low = s => String(s || '').toLowerCase();
+  const low = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
+  // текст, где !команды не рвутся после «!», а эмодзи в конце не уезжает на строку один
+  const words = (tag, cls, s) => {
+    const e = el(tag, cls);
+    String(s || '').replace(/\s+(\p{Extended_Pictographic}\S*)$/u, ' $1').split(/(![\p{L}\p{N}_]+)/u)
+      .forEach((p, i) => { if (p) e.append(i % 2 ? el('span', 'nw', p) : p); });
+    return e;
+  };
+  const plural =(n, one, few, many) => { const a = n % 100, b = n % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b > 1 && b < 5 ? few : many; };
   document.getElementById('toAlbum').href = GH ? './' : '/tarot';
   function load() {
-    if (!GH) return fetch('/hub/commands/state', { cache: 'no-store' }).then(r => r.json());
+    if (!GH) return fetch('/hub/commands/state', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
     const api = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/commands.json?ref=data`;
     const raw = `https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/data/commands.json?t=` + Date.now();
     const get = (u, h) => fetch(u, { cache: 'no-store', headers: h || {} }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
     return get(api, { Accept: 'application/vnd.github.raw+json' }).catch(() => get(raw));
   }
+  // копирование: кнопка не меняет размер, только цвет; текст «скопировано» — во всплывашке для всех, и для экранных дикторов
+  const toast = document.getElementById('toast');
+  let tt = 0;
+  function say(text) {
+    toast.textContent = text; toast.classList.add('on');
+    clearTimeout(tt); tt = setTimeout(() => toast.classList.remove('on'), 1800);
+  }
+  function fallbackCopy(text) {
+    const t = el('textarea'); t.value = text; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    t.remove(); return ok;
+  }
   function copy(btn, text) {
-    const done = () => { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 900); };
-    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => {}); else done();
+    const done = () => { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 900); say(`Скопировано: ${text} — вставь в чат`); };
+    const fail = () => say(fallbackCopy(text) ? `Скопировано: ${text} — вставь в чат` : `Не получилось скопировать — напиши в чат ${text}`);
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fail); else fail();
   }
   function render(D) {
-    document.getElementById('msg').remove();
     const secs = (D.sections || []).filter(s => (s.items || []).length);
-    // поиск и быстрые ссылки по разделам
-    const find = el('div', 'find'), inp = el('input');
-    inp.type = 'search'; inp.placeholder = 'Найти команду: кот, баллы, трек…'; inp.setAttribute('aria-label', 'Найти команду');
-    find.appendChild(inp); app.appendChild(find);
-    const jump = el('nav', 'jump');
+    const rewards = (D.rewards || []).slice().sort((a, b) => (a.cost || 0) - (b.cost || 0));
+    const main = el('main'); main.id = 'main';
+    document.getElementById('msg').replaceWith(main);
+    // поиск прилипает к верху: подпись, счётчик, поле и «наверх»
+    const bar = el('div', 'bar'), lab = el('label'), cnt = el('span', 'count'), field = el('div', 'field'), inp = el('input'), up = el('button', 'up', '↑');
+    lab.htmlFor = inp.id = 'q';
+    lab.append(el('b', null, 'Найти команду'), cnt);
+    inp.type = 'search'; inp.placeholder = 'кот, баллы, трек…'; inp.autocomplete = 'off'; inp.spellcheck = false; inp.enterKeyHint = 'search';
+    up.type = 'button'; up.title = 'Наверх, к разделам'; up.setAttribute('aria-label', 'Наверх, к разделам');
+    up.addEventListener('click', () => { window.scrollTo({ top: 0 }); });
+    field.append(inp, up); bar.append(lab, field); main.appendChild(bar);
+    const jump = el('nav', 'jump'); jump.setAttribute('aria-label', 'Разделы');
     secs.forEach(s => { const a = el('a', 'chip', `${s.emoji} ${s.title}`); a.href = '#' + s.key; jump.appendChild(a); });
-    if ((D.rewards || []).length) { const a = el('a', 'chip', '🎁 Награды за баллы'); a.href = '#rewards'; jump.appendChild(a); }
-    app.appendChild(jump);
+    if (rewards.length) { const a = el('a', 'chip', '🎁 Награды за баллы'); a.href = '#rewards'; jump.appendChild(a); }
+    main.appendChild(jump);
     const rows = [];
+    let total = 0;
     secs.forEach(s => {
-      const sec = el('section', 'sec'); sec.id = s.key;
-      sec.appendChild(el('h2', null, `${s.emoji} ${s.title}`));
+      const sec = el('section', 'sec'); sec.id = s.key; sec.setAttribute('aria-labelledby', 'h-' + s.key);
+      const h = el('h2', null, `${s.emoji} ${s.title}`); h.id = 'h-' + s.key; sec.appendChild(h);
       const list = el('div', 'list');
       s.items.forEach(it => {
-        const r = el('div', 'row'), b = el('button', 'cmd', it.cmd), d = el('div', 'd', it.desc);
-        b.type = 'button'; b.title = 'Скопировать'; b.addEventListener('click', () => copy(b, it.cmd));
-        if (it.who && it.who !== 'все') d.appendChild(el('span', 'who' + (it.who === 'VIP' ? ' vip' : ''), it.who));
-        if ((it.aliases || []).length) d.appendChild(el('span', 'al', 'или ' + it.aliases.join(' ')));
-        r.append(b, d); list.appendChild(r);
-        rows.push([r, low([it.cmd, it.desc, s.title].concat(it.aliases || []).join(' ')), sec]);
+        const r = el('div', 'row'), b = el('button', 'cmd', it.cmd), d = words('div', 'd', it.desc);
+        b.type = 'button'; b.title = 'Скопировать'; b.setAttribute('aria-label', `${it.cmd} — скопировать`);
+        b.addEventListener('click', () => copy(b, it.cmd));
+        if (it.who && it.who !== 'все') d.appendChild(el('span', 'who' + (it.who === 'VIP' ? ' vip' : ''), it.who === 'VIP' ? 'только VIP' : it.who));
+        if ((it.aliases || []).length) {               // каждый алиас целиком, без переноса после «!»
+          const al = el('span', 'al', 'или');
+          it.aliases.forEach(a => al.append(' ', el('span', null, a)));
+          d.appendChild(al);
+        }
+        r.append(b, d); list.appendChild(r); total++;
+        rows.push([r, low([it.cmd, it.desc, s.title].concat(it.aliases || []).join(' ')), sec, 1]);
       });
-      sec.appendChild(list); app.appendChild(sec);
+      sec.appendChild(list); main.appendChild(sec);
     });
-    if ((D.rewards || []).length) {
-      const sec = el('section', 'sec'); sec.id = 'rewards';
-      sec.appendChild(el('h2', null, '🎁 Награды за баллы'));
-      sec.appendChild(el('p', 'empty', 'Баллы канала копятся сами, пока смотришь стрим. Награды — в окошке баллов под чатом'));
+    if (rewards.length) {
+      const sec = el('section', 'sec'); sec.id = 'rewards'; sec.setAttribute('aria-labelledby', 'h-rewards');
+      const h = el('h2', null, '🎁 Награды за баллы'); h.id = 'h-rewards'; sec.appendChild(h);
+      sec.appendChild(el('p', 'note', 'Баллы канала копятся сами, пока смотришь стрим. Награды — в окошке баллов под чатом'));
       const g = el('div', 'rw');
-      D.rewards.forEach(x => {
-        const c = el('div', 'r'); c.append(el('b', null, x.title), el('i', null, `${x.cost} баллов`), el('span', null, x.what || ''));
-        g.appendChild(c); rows.push([c, low(x.title + ' ' + x.what + ' баллы награды'), sec]);
+      rewards.forEach(x => {
+        const c = el('div', 'r'), cost = Number(x.cost) || 0;
+        c.append(words('b', null, x.title), el('i', null, `${cost.toLocaleString('ru-RU')} ${plural(cost, 'балл', 'балла', 'баллов')}`), words('span', null, x.what));
+        g.appendChild(c); rows.push([c, low(x.title + ' ' + x.what + ' баллы награды'), sec, 0]);
       });
-      sec.appendChild(g); app.appendChild(sec);
+      sec.appendChild(g); main.appendChild(sec);
     }
-    const none = el('p', 'empty', 'Такой команды нет. Попробуй другое слово'); none.hidden = true; app.appendChild(none);
-    inp.addEventListener('input', () => {
+    const none = el('p', 'empty', 'Ничего не нашлось. Попробуй другое слово или открой !команды в чате'); none.hidden = true; main.appendChild(none);
+    const all = `${total} ${plural(total, 'команда', 'команды', 'команд')}`;
+    cnt.textContent = all;
+    function filter() {
       const q = low(inp.value).trim().replace(/^!/, '');
-      const shown = new Set();
-      rows.forEach(([r, hay, sec]) => { const on = !q || hay.includes(q); r.hidden = !on; if (on) shown.add(sec); });
+      const shown = new Set(); let n = 0;
+      rows.forEach(([r, hay, sec, isCmd]) => { const on = !q || hay.includes(q); r.hidden = !on; if (on) { shown.add(sec); n += isCmd; } });
       rows.forEach(([, , sec]) => { sec.hidden = !shown.has(sec); });
       jump.hidden = !!q; none.hidden = shown.size > 0;
-    });
-    app.appendChild(el('footer', null, `Отвечает ${D.bot || 'Глупобот'} и станция Они. Тут только то, что сейчас включено на стриме`));
+      cnt.textContent = q ? `нашлось: ${n}` : all;
+    }
+    inp.addEventListener('input', filter);
+    inp.addEventListener('keydown', e => { if (e.key === 'Escape' && inp.value) { inp.value = ''; filter(); } });
+    // высота липкой полосы — чтобы переход по разделу не прятал заголовок под ней
+    const setBar = () => document.documentElement.style.setProperty('--bar', bar.offsetHeight + 'px');
+    setBar(); window.addEventListener('resize', setBar);
+    main.appendChild(el('footer', null, `Отвечает ${D.bot || 'Глупобот'} и станция Они. Тут только то, что сейчас включено на стриме`));
+    if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
   }
-  load().then(render).catch(() => { document.getElementById('msg').textContent = 'Команды не загрузились. Обнови страницу через минутку'; });
+  function fail() {
+    const box = document.getElementById('msg');
+    box.replaceChildren(el('p', 'empty', 'Команды не загрузились. Проверь интернет и попробуй ещё раз'));
+    const b = el('button', 'again', 'Загрузить ещё раз'); b.type = 'button';
+    b.addEventListener('click', () => { box.replaceChildren(el('p', 'empty', 'Загружаю команды…')); start(); });
+    box.appendChild(b); box.querySelector('p').setAttribute('role', 'alert');
+  }
+  const start = () => load().then(render).catch(fail);
+  start();
 })();
 </script>
 </body>
