@@ -65,6 +65,11 @@ h2{margin:0;font:900 24px/1.1 var(--display);text-transform:uppercase;letter-spa
 .sc figcaption{font:800 13px/1.25 var(--body);color:var(--soft)}
 .sc figcaption b{display:block;color:var(--ink);font:900 13px/1.2 var(--display);text-transform:uppercase}
 .empty{color:var(--soft);margin:0}
+.pets{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.pet{margin:0;background:var(--sheet);border:3px solid var(--ink);border-radius:18px;padding:10px 14px 14px;display:grid;gap:2px;justify-items:center;text-align:center}
+.pet img{width:min(170px,100%);aspect-ratio:1;object-fit:contain}
+.pet b{font:900 18px/1.1 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
+.pet span{font-size:14px;color:var(--soft);line-height:1.3}
 .ach{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
 .a{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;background:var(--sheet);border:2.5px solid var(--ink);border-radius:14px;padding:10px 12px}
 .a i{font-style:normal;font-size:26px;grid-row:span 2}
@@ -95,7 +100,7 @@ footer{color:var(--soft);font-size:14px}
 <script>
 (() => {
   const GH = {"owner": "gluponya", "repo": "gluponya-tarot"};                                  // на GitHub сюда подставляется {owner, repo}
-  let IMG = 'cards/';
+  let IMG = 'cards/', TAMA = '/static/tama/';   // на GitHub питомцы лежат в pets/ (gh_pages.py)
   const DEMO = /[?&]demo=/.test(location.search);
   const U = (new URLSearchParams(location.search).get('u') || '').toLowerCase().replace(/^@/, '');
   const ALBUM = GH ? './' : '/tarot';
@@ -194,6 +199,23 @@ footer{color:var(--soft);font-size:14px}
     sec.appendChild(own);
     app.appendChild(sec);
 
+    // ---- питомцы чата, которых отдали этому зрителю (tama.py) ----
+    const pets = (p.pets || []).filter(x => /^[\w-]+$/.test(x.img || ''));
+    if (pets.length) {
+      const ps = el('section', 'sec');
+      ps.appendChild(el('h2', null, 'Питомцы'));
+      ps.appendChild(el('p', null, 'Чат вырастил их на стримах, и они переехали сюда'));
+      const pg = el('div', 'pets');
+      pets.forEach(x => {
+        const f = el('figure', 'pet'), im = el('img');
+        im.src = TAMA + x.img + '.webp'; im.alt = x.name || x.who || 'питомец'; im.loading = 'lazy';
+        f.append(im, el('b', null, x.name || x.who || 'питомец'));
+        f.appendChild(el('span', null, [x.name ? x.who : '', x.how, x.at ? 'с ' + x.at : ''].filter(Boolean).join(', ')));
+        pg.appendChild(f);
+      });
+      ps.appendChild(pg); app.appendChild(ps);
+    }
+
     // ---- ачивки ----
     const as = el('section', 'sec');
     as.appendChild(el('h2', null, `Ачивки ${p.have}/${p.all}`));
@@ -217,7 +239,7 @@ footer{color:var(--soft);font-size:14px}
     app.appendChild(el('footer', null, `Цифры обновляются, когда пишешь !профиль в чате (последний раз ${upd.toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}). Витрина обновляется сама после каждой карты. Убрать страницу: !профиль скрыть`));
   }
 
-  if (GH) IMG = 'cards/';
+  if (GH) { IMG = 'cards/'; TAMA = 'pets/'; }
   load().then(render).catch(() => { document.getElementById('msg').textContent = 'Профиль не загрузился. Обнови страницу через минутку'; });
 })();
 </script>
