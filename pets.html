@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Питомцы чата</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Rubik:wght@600;900&display=swap" rel="stylesheet">
+<style>
+/* Галерея питомцев чата (tama.py): сверху тот, кто растёт сейчас, ниже — все, кто вырос. Тот же альбом, что и колода таро.
+   Станция: /pets (данные /hub/tama/pets, картинки /static/tama/). GitHub Pages: pets.html (gh_pages.py подставляет GH).
+   ?obs — сцена OBS 1920×1080 без подвала, ?demo — выдуманные питомцы для проверки. */
+:root{
+  --paper:#F6EBD3; --sheet:#FFF8EC; --ink:#1B1418; --soft:#6E5A60; --line:#E2D2B4;
+  --coral:#E8553F; --orange:#F29A3A; --yellow:#F7D44C; --mint:#6CC08B; --blue:#4F86C6; --pink:#F49CB9; --plum:#6B3FA0;
+  --sweet:#FF8FB1; --spicy:#FF8A3D; --fish:#5FD3C6; --green:#7BC86C;
+  --display:"Rubik","Arial Black",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; color-scheme:dark}
+html,body{background:var(--paper);color:var(--ink)}
+body{margin:0;font:700 16px/1.45 var(--body);
+  background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) .9px,transparent 1.2px);background-size:7px 7px}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+h1{margin:0;font:900 clamp(40px,8vw,84px)/.95 var(--display);letter-spacing:.03em;text-wrap:balance}
+h1 span{-webkit-text-stroke:clamp(5px,1vw,9px) #1B1418;paint-order:stroke fill}
+h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
+.lead{margin:10px 0 0;max-width:62ch;color:var(--soft);font-size:17px}
+.lead b{color:var(--ink)}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:800 14px/1 var(--body);padding:8px 12px;border-radius:999px;background:var(--sheet);border:2px solid var(--ink)}
+.chip b{font-variant-numeric:tabular-nums}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--c)}
+
+.now{display:grid;grid-template-columns:minmax(0,340px) 1fr;gap:24px;align-items:center;background:var(--sheet);border:3px solid var(--ink);border-radius:24px;padding:20px}
+.now .pic{aspect-ratio:1;border-radius:18px;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--c,var(--yellow)) 55%,transparent),transparent 70%)}
+.now .pic img{width:100%;height:100%;object-fit:contain;display:block;animation:bob 4.2s ease-in-out infinite;transform-origin:50% 88%}
+@keyframes bob{50%{transform:rotate(1.6deg) translateY(-4px)}0%,100%{transform:rotate(-1.6deg)}}
+.now .info{display:grid;gap:10px;min-width:0}
+.tag{font:900 13px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;color:var(--soft)}
+.nm{margin:0;font:900 clamp(34px,6vw,58px)/1 var(--display);overflow-wrap:anywhere}
+.nm.none{color:var(--soft);font-size:clamp(26px,4vw,38px)}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.naming{padding:12px 14px;border-radius:14px;border:2px dashed var(--ink);background:var(--paper);font-size:15px}
+.naming b{font-family:var(--display);font-weight:900}
+.carers{color:var(--soft);font-size:15px}
+.carers b{color:var(--ink);overflow-wrap:anywhere}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.pet{margin:0;background:var(--sheet);border:3px solid var(--ink);border-radius:20px;padding:12px;display:grid;gap:8px;align-content:start;min-width:0}
+.pet .pic{position:relative;aspect-ratio:1;border-radius:14px;background:radial-gradient(circle at 50% 62%,color-mix(in srgb,var(--c) 50%,transparent),transparent 72%)}
+.pet .pic img{width:100%;height:100%;object-fit:contain;display:block;transition:transform .18s ease}
+.pet:hover .pic img{transform:translateY(-5px) rotate(-1.5deg)}
+.num{position:absolute;top:6px;left:6px;font:900 13px/1 var(--display);letter-spacing:.06em;background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:999px;padding:5px 9px;font-variant-numeric:tabular-nums}
+.pet h3{margin:0;font:900 22px/1.05 var(--display);overflow-wrap:anywhere}
+.pet h3.none{color:var(--soft);font-size:17px}
+.pet .who{font:800 14px/1.25 var(--body);color:var(--soft)}
+.pet .who b{color:var(--ink)}
+.pet .meta{font:800 13px/1.3 var(--body);color:var(--soft);overflow-wrap:anywhere}
+.pet .meta b{color:var(--ink)}
+.empty{color:var(--soft);font-size:16px;margin:0;padding:18px;border:2px dashed var(--line);border-radius:16px}
+footer{color:var(--soft);font-size:14px}
+footer a{color:var(--ink)}
+
+body.obs{background-size:9px 9px}
+body.obs .wrap{max-width:none;width:1920px;height:1080px;box-sizing:border-box;padding:48px 64px;gap:30px;overflow:hidden;align-content:start}
+body.obs h1{font-size:88px}
+body.obs footer,body.obs .lead{display:none}
+body.obs .now{grid-template-columns:300px 1fr;padding:18px 24px}
+body.obs .grid{grid-template-columns:repeat(6,1fr)}
+@media (max-width:640px){.now{grid-template-columns:1fr}.now .pic{max-width:300px;width:100%;margin:0 auto}}
+@media (prefers-reduced-motion:reduce){.now .pic img{animation:none}.pet .pic img{transition:none}.pet:hover .pic img{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 aria-label="Питомцы gluponya"><span style="color:#FF8FB1">П</span><span style="color:#F29A3A">И</span><span style="color:#F7D44C">Т</span><span style="color:#6CC08B">О</span><span style="color:#5FD3C6">М</span><span style="color:#4F86C6">Ц</span><span style="color:#F49CB9">Ы</span> <span style="color:#F7D44C">gluponya</span></h1>
+    <p class="lead">Каждую неделю чат на <b>twitch.tv/gluponya</b> растит общего питомца: кормит его за баллы канала, и от еды зависит, <b>кто вылупится</b>, какая у него вырастет деталь и какой будет характер. Имя тоже придумывает чат. Здесь живут все, кто уже вылупился.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section aria-live="polite" id="now"></section>
+
+  <section style="display:grid;gap:14px">
+    <h2>Выросли</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <footer>Кормить питомца: награда «Покормить питомца 🍼» на <a href="https://twitch.tv/gluponya">twitch.tv/gluponya</a>. В чате: !питомец, !имя, !питомцы. <span id="tarot"></span></footer>
+</div>
+<script>
+(() => {
+  const GH = {"owner": "gluponya", "repo": "gluponya-tarot"};                                  // на GitHub сюда подставляется {owner, repo}
+  const Q = new URLSearchParams(location.search);
+  const DEMO = Q.has('demo'), OBS = Q.has('obs');
+  if (OBS) document.body.classList.add('obs');
+  const IMG = n => (GH ? 'pets/' : '/static/tama/') + n + '.webp';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const FAM = { sweet: ['зефирка', '🍬', 'сладкое'], spicy: ['дракончик', '🌶️', 'острое'], fish: ['аксолотль', '🐟', 'рыбка'], green: ['росток', '🥬', 'зелень'] };
+  const PART = { sprinkles: 'посыпка с глазурью 🍬', flame: 'хохолок-огонёк 🌶️', fins: 'ушки-плавнички 🐟', sprout: 'росток 🥬' };
+  const CHAR = { normal: 'обычный', happy: 'весёлый', lazy: 'ленивый', grumpy: 'вредный' };
+  const STAGE = { baby: 'малыш', child: 'ребёнок', teen: 'подросток', adult: 'взрослый' };
+  const color = f => `var(--${FAM[f] ? f : 'yellow'})`;
+  const plural = (n, a, b, c) => { n = Math.abs(n) % 100; const m = n % 10; return n > 10 && n < 20 ? c : m === 1 ? a : m > 1 && m < 5 ? b : c; };
+
+  function facts(p) {
+    const f = FAM[p.family] || ['?', '', ''];
+    const out = [`<span class="chip" style="--c:${color(p.family)}"><i></i>${esc(f[0])} ${f[1]}</span>`];
+    if (STAGE[p.phase] && p.phase !== 'adult') out.push(`<span class="chip">${esc(STAGE[p.phase])}</span>`);
+    out.push(`<span class="chip">${p.part ? esc(PART[p.part] || p.part) : 'чистокровный ✨'}</span>`);
+    if (p.char && p.phase === 'adult') out.push(`<span class="chip">характер: <b>${esc(CHAR[p.char] || p.char)}</b></span>`);
+    return out.join('');
+  }
+  function carers(p, n) {
+    const c = (p.carers || []).slice(0, n);
+    if (!c.length) return '';
+    return 'Растили: ' + c.map(([who, k]) => `<b>${esc(who)}</b> ×${k}`).join(', ');
+  }
+
+  function drawNow(D) {
+    const box = $('now');
+    if (D.egg && !D.now) {
+      box.innerHTML = `<div class="now" style="--c:var(--yellow)"><div class="pic"><img src="${IMG(D.egg.img)}" alt="Яйцо"></div>
+        <div class="info"><div class="tag">Сейчас · №${D.egg.gen}</div><p class="nm none">Яйцо греется 🥚</p>
+        <div class="carers">Кто вылупится, решает еда: сладкое, острое, рыбка или зелень. Счёт — секрет, видно только по свечению яйца на стриме.</div></div></div>`;
+      return;
+    }
+    const p = D.now;
+    if (!p) { box.innerHTML = ''; return; }
+    const f = FAM[p.family] || ['питомец', ''];
+    const nv = D.naming;
+    let naming = '';
+    if (nv && nv.st === 'collect') {
+      const top = (nv.top || []).slice(0, 3).map(x => `<b>${esc(x.name)}</b> (${x.n})`).join(', ');
+      naming = `<div class="naming">🏷 Чат придумывает имя: пиши в чате <b>!имя Вариант</b>, повтор чужого варианта — голос за него.${top ? ' Лидируют: ' + top : ''}</div>`;
+    } else if (nv && nv.st === 'poll') {
+      naming = `<div class="naming">🗳 Голосуем за имя в опросе над чатом на Twitch!</div>`;
+    }
+    box.innerHTML = `<div class="now" style="--c:${color(p.family)}"><div class="pic"><img src="${IMG(p.img)}" alt="${esc(p.name || f[0])}"></div>
+      <div class="info"><div class="tag">Сейчас растёт · №${p.gen}${p.hatched ? ' · вылупился ' + esc(p.hatched) : ''}</div>
+      ${p.name ? `<p class="nm">${esc(p.name)}</p>` : `<p class="nm none">${esc(f[0])} пока без имени</p>`}
+      <div class="facts">${facts(p)}</div>
+      ${p.name && p.named_by ? `<div class="carers">Автор имени: <b>${esc(p.named_by)}</b></div>` : ''}
+      ${naming}
+      <div class="carers">${carers(p, 5)}</div></div></div>`;
+  }
+
+  function drawGrid(D) {
+    let pets = D.pets || [];
+    if (OBS) pets = pets.slice(0, 6);
+    $('grid').innerHTML = pets.length ? pets.map(p => {
+      const f = FAM[p.family] || ['питомец', ''];
+      return `<figure class="pet" style="--c:${color(p.family)}">
+        <div class="pic"><span class="num">№${p.gen}</span><img loading="lazy" src="${IMG(p.img)}" alt="${esc(p.name || f[0])}"></div>
+        ${p.name ? `<h3>${esc(p.name)}</h3>` : `<h3 class="none">без имени</h3>`}
+        <div class="who"><b>${esc(f[0])} ${f[1]}</b>${p.part ? ' + ' + esc((PART[p.part] || '').replace(/ \S+$/, '')) : ', чистокровный'}${p.char && p.phase === 'adult' ? ' · ' + esc(CHAR[p.char] || '') : p.phase !== 'adult' ? ' · ' + esc(STAGE[p.phase] || '') : ''}</div>
+        <div class="meta">${p.hatched || p.born ? 'вылупился ' + esc(p.hatched || p.born) : ''}${p.done ? ' · вырос ' + esc(p.done) : ''}${p.named_by ? `<br>автор имени: <b>${esc(p.named_by)}</b>` : ''}${OBS ? '' : (p.carers && p.carers.length ? '<br>' + carers(p, 3) : '')}</div>
+      </figure>`;
+    }).join('') : `<p class="empty">${D.now ? 'Первый питомец ещё растёт, скоро он будет здесь 🌱' : 'Первый питомец ещё в яйце 🥚'}</p>`;
+  }
+
+  function draw(D) {
+    const n = (D.pets || []).length + (D.now ? 1 : 0);
+    const fams = {};
+    for (const p of (D.pets || []).concat(D.now ? [D.now] : [])) fams[p.family] = (fams[p.family] || 0) + 1;
+    $('stats').innerHTML = `<span class="chip">Вылупилось: <b>${n}</b></span>` +
+      Object.keys(FAM).filter(k => fams[k]).map(k => `<span class="chip" style="--c:${color(k)}"><i></i>${FAM[k][0]}: <b>${fams[k]}</b></span>`).join('');
+    drawNow(D); drawGrid(D);
+  }
+
+  function demo() {
+    return { now: { gen: 4, family: 'fish', part: 'flame', char: null, phase: 'child', name: 'Бульбик', named_by: 'kringex', img: 'fish_child_flame_normal',
+                    hatched: '15.10 22:10', carers: [['кот_в_тапке', 14], ['v4rich', 9], ['k0r1___', 6]] }, egg: null,
+             naming: null,
+             pets: [{ gen: 3, family: 'green', part: null, char: 'happy', phase: 'adult', name: 'Мох', named_by: 'vvmeansvlad', img: 'green_adult_pure_happy', hatched: '08.10 21:40', done: '12.10 23:05', carers: [['barsnow_official', 21], ['кот_в_тапке', 11]] },
+                    { gen: 2, family: 'spicy', part: 'sprinkles', char: 'grumpy', phase: 'adult', name: 'Перчик', named_by: 'v4rich', img: 'spicy_adult_sprinkles_grumpy', hatched: '01.10 22:00', done: '05.10 23:30', carers: [['k0r1___', 17]] },
+                    { gen: 1, family: 'sweet', part: 'fins', char: 'lazy', phase: 'adult', name: null, named_by: '', img: 'sweet_adult_fins_lazy', hatched: '24.09 21:15', done: '28.09 22:50', carers: [] }] };
+  }
+
+  let last = '';
+  function take(j) { const s = JSON.stringify(j); if (s !== last) { last = s; draw(j); } }
+  function get() {
+    if (!GH) return fetch('/hub/tama/pets', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    const api = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/pets.json?ref=data`;
+    const raw = `https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/data/pets.json?t=` + Date.now();
+    const one = u => fetch(u, { cache: 'no-store', headers: u === api ? { Accept: 'application/vnd.github.raw+json' } : {} })
+      .then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
+    return one(api).catch(() => one(raw));
+  }
+  function tick() {
+    if (document.hidden && !OBS) return setTimeout(tick, 15000);
+    get().then(take).catch(() => { if (!last) $('grid').innerHTML = '<p class="empty">Галерея не загрузилась. Обнови страницу через минутку</p>'; })
+      .finally(() => setTimeout(tick, GH ? 90000 : 5000));
+  }
+  if (GH) $('tarot').innerHTML = '· <a href="./">Колода таро</a>';
+  if (DEMO) draw(demo()); else tick();
+})();
+</script>
+</body>
+</html>
