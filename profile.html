@@ -129,7 +129,7 @@ footer{color:var(--soft);font-size:14px}
     how.appendChild(el('code', null, '!профиль'));
     how.appendChild(el('p', 'why', 'Бот покажет твою карточку на экране и пришлёт в чат ссылку на твою страницу.'));
     s.appendChild(how);
-    const names = Object.values(D.profiles || {}).sort((a, b) => (b.pts || 0) - (a.pts || 0));
+    const names = Object.values(D.profiles || {}).sort((a, b) => (!!b.title - !!a.title) || (b.have || 0) - (a.have || 0));
     if (names.length) {
       s.appendChild(el('p', null, 'Профили зрителей канала:'));
       const l = el('div', 'list');
@@ -167,12 +167,12 @@ footer{color:var(--soft);font-size:14px}
       ab.append(el('b', null, '🤖 Бот о зрителе'), document.createTextNode(p.about));
       box.appendChild(ab);
     }
-    const rk = el('div', 'rank');
-    rk.appendChild(el('b', null, p.rank));
-    const bar = el('div', 'bar'), bi = el('i'); bi.style.width = Math.max(3, Math.min(100, p.pct || 0)) + '%'; bar.appendChild(bi);
-    bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', `до следующего звания ${p.pct}%`);
-    rk.append(bar, el('span', null, (p.pct >= 100 ? 'высшее звание канала' : `до следующего звания ${p.pct}%`) + ` · ${p.pts} очков`));
-    box.appendChild(rk);
+    if (p.goal && p.goal.t) {                      // ближайший переходящий титул (titles.py)
+      const rk = el('div', 'rank');
+      rk.append(el('span', null, 'Следующий титул'), el('b', null, `${p.goal.e || '🏆'} ${p.goal.t}`),
+                el('span', null, `не хватает ${p.goal.left} ${p.goal.unit}`));
+      box.appendChild(rk);
+    }
     hero.append(ava, box); app.appendChild(hero);
 
     // ---- цифры ----
