@@ -35,6 +35,8 @@ a{color:var(--ink)}
 .chip.sub{background:var(--plum);color:#FFF8EC}
 .chip.vip{background:var(--pink);color:#1B1418}
 .why{margin:8px 0 0;color:var(--soft);font-size:15px}
+.about{margin:12px 0 0;max-width:520px;padding:10px 14px;background:var(--sheet);border:2px solid var(--line);border-radius:14px;font-size:15px}
+.about b{display:block;font-size:13px;color:var(--soft);margin-bottom:2px}
 .rank{margin-top:14px;display:grid;gap:6px;max-width:520px}
 .rank b{font:900 18px/1 var(--display);text-transform:uppercase;letter-spacing:.03em}
 .bar{height:16px;border-radius:999px;border:3px solid var(--ink);background:var(--sheet);overflow:hidden}
@@ -160,6 +162,11 @@ footer{color:var(--soft);font-size:14px}
     if (p.since) meta.appendChild(el('span', 'chip', (p.follow ? '🐾 фоллоу с ' : '🐾 с нами с ') + p.since));
     box.appendChild(meta);
     if (p.title && p.why) box.appendChild(el('p', 'why', p.why));
+    if (p.about) {                                 // строчка бота: есть только у тех, кто сам включил !профиль о себе показать
+      const ab = el('p', 'about');
+      ab.append(el('b', null, '🤖 Бот о зрителе'), document.createTextNode(p.about));
+      box.appendChild(ab);
+    }
     const rk = el('div', 'rank');
     rk.appendChild(el('b', null, p.rank));
     const bar = el('div', 'bar'), bi = el('i'); bi.style.width = Math.max(3, Math.min(100, p.pct || 0)) + '%'; bar.appendChild(bi);
