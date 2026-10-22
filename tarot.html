@@ -106,6 +106,8 @@ button.ghost{background:var(--sheet);color:var(--ink)}
 .lb li.empty::before{content:none}
 footer{color:var(--soft);font-size:14px}
 footer a{color:var(--ink)}
+a.nick{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent)}
+a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
 .slot.own .card{cursor:pointer;transition:transform .18s ease}
 .slot.own .card:hover{transform:translateY(-5px) rotate(-1.5deg)}
 .slot.own .card:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
@@ -164,10 +166,26 @@ footer a{color:var(--ink)}
   const ALPH = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{8}$/;
   let D = null, IMG = 'cards/', ME = null, TAB = 'mine';
   const DEMO = /[?&]demo=/.test(location.search);   // тестовый альбом с выдуманными зрителями
+  const GH = {"owner": "gluponya", "repo": "gluponya-tarot"};                                  // на GitHub сюда подставляется {owner, repo}
   const raw = $('tarot-data').textContent.trim();
   const store = { get(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
                   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
                   del(k) { try { localStorage.removeItem(k); } catch (e) {} } };
+
+  // ники — ссылки на профиль зрителя, но только у кого профиль есть и не скрыт (иначе ведём на «такого профиля нет»)
+  const PROF = {};
+  function loadProfiles() {
+    const get = (u, h) => fetch(u, { cache: 'no-store', headers: h || {} }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
+    const src = !GH ? get('/hub/profile/state')
+      : get(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/profiles.json?ref=data`, { Accept: 'application/vnd.github.raw+json' })
+        .catch(() => get(`https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/data/profiles.json?t=` + Date.now()));
+    return src.then(j => { Object.values(j.profiles || {}).forEach(p => { if (!p || !p.login) return;
+      PROF[String(p.login).toLowerCase()] = p.login; if (p.name) PROF[String(p.name).toLowerCase()] = p.login; }); return true; })
+      .catch(() => false);
+  }
+  const profileHref = (...names) => { for (const n of names) { const k = PROF[String(n || '').toLowerCase().replace(/^@/, '')]; if (k) return (GH ? 'profile.html' : '/profile') + '?u=' + encodeURIComponent(k); } return ''; };
+  // ник: ссылка на профиль, если он есть, иначе просто жирный текст
+  const nick = name => { const h = profileHref(name); if (!h) return el('b', null, name); const a = el('a', 'nick', name); a.href = h; return a; };
 
   const card = id => D.cards.find(x => x.id === id);
   const mine = id => !!(ME && ME.cards && ME.cards[id]);
@@ -267,7 +285,7 @@ footer a{color:var(--ink)}
     D.cards.forEach(c => {
       const f = (D.first || {})[c.id], own = mine(c.id);
       const line = el('span', 'first');
-      if (f) { line.appendChild(el('i', null, 'первым: ')); line.append(f.name); if (f.at) line.appendChild(el('i', null, ' · ' + f.at)); }
+      if (f) { line.appendChild(el('i', null, 'первым: ')); line.append(profileHref(f.name) ? nick(f.name) : f.name); if (f.at) line.appendChild(el('i', null, ' · ' + f.at)); }
       else line.appendChild(el('i', null, 'ещё никто не вытянул'));
       g.appendChild(slot(c, 0, own, own ? [rt(c), line] : [line], true));
     });
@@ -326,9 +344,16 @@ footer a{color:var(--ink)}
   function renderFeed() {
     const fd = $('feed'); fd.replaceChildren();
     (D.recent || []).forEach(r => { const li = el('li'); const img = el('img'); img.src = IMG + 'back.webp'; img.alt = '';
-      const t = el('span', 't'); t.appendChild(el('b', null, r.name)); t.append(' вытянул(а) карту дня');
+      const t = el('span', 't'); t.appendChild(nick(r.name)); t.append(' вытянул(а) карту дня');
       li.append(img, t, el('time', null, r.at || '')); fd.appendChild(li); });
     if (!fd.children.length) fd.appendChild(el('li', 'empty', 'Пока никто не тянул'));
+  }
+  function renderLeaders() {
+    const lb = $('lb'); lb.replaceChildren();
+    (D.leaders || []).forEach(u => { const li = el('li'); const nm = el('span', 'nm'); const h = profileHref(u.name);
+      if (h) { const a = el('a', 'nick', u.name); a.href = h; nm.appendChild(a); } else nm.textContent = u.name;
+      li.append(nm, el('span', 'sc', `${u.n}/${D.total}`)); lb.appendChild(li); });
+    if (!lb.children.length) lb.appendChild(el('li', 'empty', 'Пока никого. Первая карта дня ждёт на стриме'));
   }
   function render() {
     D.cards = D.cards || []; D.total = D.total || D.cards.length;
@@ -340,9 +365,7 @@ footer a{color:var(--ink)}
     const od = $('odds'); od.replaceChildren();
     ['common', 'rare', 'myth', 'legend'].forEach(k => { const c = el('span', 'chip'); const dot = el('i'); dot.style.background = RCOL[k];
       c.append(dot, `${D.rarity[k].label} ${String(D.rarity[k].pct).replace('.', ',')}%`); od.appendChild(c); });
-    const lb = $('lb'); lb.replaceChildren();
-    (D.leaders || []).forEach(u => { const li = el('li'); li.append(el('span', 'nm', u.name), el('span', 'sc', `${u.n}/${D.total}`)); lb.appendChild(li); });
-    if (!lb.children.length) lb.appendChild(el('li', 'empty', 'Пока никого. Первая карта дня ждёт на стриме'));
+    renderLeaders();
     const upd = new Date((D.updated || 0) * 1000);
     $('foot').textContent = `Обновлено ${upd.toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Тянуть карту: награда «Карта дня 🔮» за баллы на twitch.tv/gluponya. Свои карты в чате: !коллекция, обмен повторок: !обмен, код альбома: !код, свой профиль с витриной: !профиль`;
     if (D.demo) st.prepend(chip('🧪 ТЕСТОВЫЕ ДАННЫЕ, код', D.demo.code.slice(0, 4) + '-' + D.demo.code.slice(4)));
@@ -357,6 +380,8 @@ footer a{color:var(--ink)}
   $('t-stats').addEventListener('click', () => { TAB = 'stats'; show(); });
 
   if (raw && raw !== '__TAROT' + '_DATA__') { try { D = JSON.parse(raw); IMG = 'cards/'; } catch (e) { D = null; } }
+  // профили подгрузились позже альбома — перерисовать ники ссылками (без повторной расшифровки колоды)
+  if (!DEMO) loadProfiles().then(ok => { if (ok && D && D.cards) { renderLeaders(); show(); } });
   if (D) render();
   else (function load(first) {
     const api = 'https://api.github.com/repos/gluponya/gluponya-tarot/contents/tarot_public.json?ref=data';
