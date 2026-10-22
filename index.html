@@ -2,374 +2,96 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>
-<title>Колода gluponya</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>gluponya</title>
+<meta name="description" content="Колода таро, питомцы, команды и профили зрителей стрима twitch.tv/gluponya">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Rubik:wght@600;900&display=swap" rel="stylesheet">
 <style>
-/* Layout: a collector's binder — deck title as the printed card lettering, a nick search, then the album, leaders, fresh pulls and a numbers-only stats tab */
+/* Главная сайта: все страницы чата одной плиткой. Станция: /home. GitHub Pages: index.html (gh_pages.py, картинки из cards/ и pets/). */
 :root{
-  --paper:#F6EBD3; --sheet:#FFF8EC; --ink:#1B1418; --soft:#6E5A60; --line:#E2D2B4;
+  --paper:#F6EBD3; --sheet:#FFF8EC; --ink:#1B1418; --soft:#6E5A60; --line:#E2D2B4; --focus:#6B3FA0;
   --coral:#E8553F; --orange:#F29A3A; --yellow:#F7D44C; --mint:#6CC08B; --blue:#4F86C6; --pink:#F49CB9; --plum:#6B3FA0;
-  --r-common:#8C7B72; --r-rare:#4F86C6; --r-myth:#8E54D6; --r-legend:#D9A21E;
   --display:"Rubik","Arial Black",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A;
-  --r-common:#B9A79D; --r-rare:#7FB0EE; --r-myth:#C59BFF; --r-legend:#F7D44C; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A;
-  --r-common:#B9A79D; --r-rare:#7FB0EE; --r-myth:#C59BFF; --r-legend:#F7D44C; color-scheme:dark}
+  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; --focus:#F7D44C; color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; --focus:#F7D44C; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{background:var(--paper);color:var(--ink)}
-body{margin:0;font:700 16px/1.45 var(--body);
+body{margin:0;font:700 16px/1.45 var(--body);overflow-x:hidden;
   background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) .9px,transparent 1.2px);background-size:7px 7px}
-.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
-h1{margin:0;font:900 clamp(40px,8vw,84px)/.95 var(--display);letter-spacing:.03em;text-wrap:balance}
-h1 span{-webkit-text-stroke:clamp(5px,1vw,9px) #1B1418;paint-order:stroke fill}
-h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
-.lead{margin:10px 0 0;max-width:62ch;color:var(--soft);font-size:17px}
-.lead b{color:var(--ink)}
-.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.chip{display:inline-flex;align-items:center;gap:6px;font:800 14px/1 var(--body);padding:8px 12px;border-radius:999px;background:var(--sheet);border:2px solid var(--ink)}
-.chip b{font-variant-numeric:tabular-nums}
-.odds{display:flex;flex-wrap:wrap;gap:8px}
-.odds .chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
-.find{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.find label{font:900 15px/1 var(--display);text-transform:uppercase;letter-spacing:.04em}
-.find input{flex:1 1 220px;min-width:0;font:800 17px/1 var(--body);padding:12px 14px;border-radius:14px;border:3px solid var(--ink);background:var(--sheet);color:var(--ink)}
-.find input:focus-visible,button:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
-button{font:900 15px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;padding:13px 16px;border-radius:14px;border:3px solid var(--ink);background:var(--yellow);color:#1B1418;cursor:pointer}
-button.ghost{background:var(--sheet);color:var(--ink)}
-.who{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:baseline}
-.who h2{font-size:28px}
-.bar{flex:1 1 220px;height:16px;border-radius:999px;border:3px solid var(--ink);background:var(--sheet);overflow:hidden}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--coral),var(--orange),var(--yellow),var(--mint),var(--blue),var(--pink))}
-.note{color:var(--soft);font-size:15px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:16px}
-.slot{position:relative;margin:0}
-.card{position:relative;aspect-ratio:360/620;max-width:100%;border-radius:12px;overflow:hidden;background:var(--sheet)}
-.card img{width:100%;height:100%;display:block;object-fit:cover}
-.slot.miss .card img{filter:saturate(.85)}
-.slot.own.rare .card{box-shadow:0 0 0 3px var(--r-rare),0 0 18px 2px color-mix(in srgb,var(--r-rare) 70%,transparent)}
-.slot.own.myth .card{box-shadow:0 0 0 3px var(--r-myth),0 0 22px 4px color-mix(in srgb,var(--r-myth) 70%,transparent)}
-.slot.own.legend .card{box-shadow:0 0 0 3px var(--r-legend),0 0 28px 6px color-mix(in srgb,var(--r-legend) 80%,transparent);animation:glow 2.6s ease-in-out infinite}
-@keyframes glow{50%{box-shadow:0 0 0 3px var(--r-legend),0 0 40px 12px color-mix(in srgb,var(--pink) 70%,transparent)}}
-.cnt{position:absolute;top:-8px;left:-8px;z-index:2;font:900 15px/1 var(--display);background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:999px;padding:6px 9px;font-variant-numeric:tabular-nums}
-.slot figcaption{display:flex;flex-direction:column;gap:2px;margin-top:8px;font:800 13px/1.2 var(--body);color:var(--soft)}
-.slot figcaption b{color:var(--ink);font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:13px;min-width:0;overflow-wrap:anywhere}
-.rt{white-space:nowrap}
-.rt.common{color:var(--r-common)} .rt.rare{color:var(--r-rare)} .rt.myth{color:var(--r-myth)} .rt.legend{color:var(--r-legend)}
-.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px}
-.panel{background:var(--sheet);border:3px solid var(--ink);border-radius:20px;padding:18px;display:grid;gap:12px;min-width:0;align-content:start}
-.lb{list-style:none;margin:0;padding:0;display:grid;gap:6px;counter-reset:n}
-.lb li{counter-increment:n}
-.lb .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lb .sc{font:900 15px/1 var(--display);font-variant-numeric:tabular-nums}
-.feed{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.feed li{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;font-size:15px}
-.feed img{width:44px;aspect-ratio:360/620;border-radius:5px;object-fit:cover}
-.feed .t{min-width:0}
-.feed .t b{overflow-wrap:anywhere}
-.feed time{color:var(--soft);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.empty{color:var(--soft);font-size:15px;margin:0}
-.st{display:grid;gap:22px;margin-top:16px}
-.st h3{margin:0 0 10px;font:900 17px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
-.rows{display:grid;gap:7px;margin:0;padding:0;list-style:none}
-.rows li{display:grid;grid-template-columns:minmax(110px,160px) 1fr 3ch;gap:10px;align-items:center;font-size:15px}
-.rows .nm{overflow-wrap:anywhere}
-.rows .nm i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:baseline}
-.rows .tr{height:14px;border-radius:999px;border:2.5px solid var(--ink);background:var(--sheet);overflow:hidden}
-.rows .tr i{display:block;height:100%;background:var(--plum);min-width:4px}
-.rows .n{font:900 15px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
-.days{display:flex;gap:6px;align-items:flex-end;height:120px;margin:0;padding:0;list-style:none}
-.days li{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
-.days b{font:900 13px/1 var(--display);font-variant-numeric:tabular-nums}
-.days i{display:block;width:100%;max-width:38px;border:2.5px solid var(--ink);border-radius:8px 8px 3px 3px;background:var(--yellow);min-height:4px}
-.days span{font-size:11px;color:var(--soft);white-space:nowrap}
-@media (max-width:560px){.days{gap:4px}.days span{font-size:0}.days span::after{content:attr(data-d);font-size:11px}}
-.st,.st section{min-width:0}
-.tabs{display:flex;flex-wrap:wrap;gap:8px}
-.tabs button{background:var(--sheet);color:var(--ink)}
-.tabs button[aria-selected="true"]{background:var(--plum);color:#FFF8EC;border-color:var(--ink)}
-.find input.code{flex:0 1 260px;letter-spacing:.18em;text-transform:uppercase;font-variant-numeric:tabular-nums}
-.first{font:800 13px/1.25 var(--body);color:var(--ink);overflow-wrap:anywhere}
-.first i{font-style:normal;color:var(--soft)}
-.num{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:2;font:900 13px/1 var(--display);letter-spacing:.08em;
-  background:#F6EBD3;color:#1B1418;border:2.5px solid #1B1418;border-radius:999px;padding:5px 10px;white-space:nowrap}
-.lb li{display:grid;grid-template-columns:2.2em 1fr auto;gap:10px;align-items:center;font:800 15px/1.2 var(--body);padding:9px 12px;border-radius:12px;border:2px solid var(--line);background:var(--paper)}
-.lb li::before{content:counter(n);font:900 16px/1 var(--display);color:var(--soft);font-variant-numeric:tabular-nums}
-.lb li.empty{display:block;border:0;background:none;padding:0}
-.lb li.empty::before{content:none}
-footer{color:var(--soft);font-size:14px}
-footer a{color:var(--ink)}
-.slot.own .card{cursor:pointer;transition:transform .18s ease}
-.slot.own .card:hover{transform:translateY(-5px) rotate(-1.5deg)}
-.slot.own .card:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
-@media (prefers-reduced-motion:reduce){.slot.own.legend .card{animation:none}.slot.own .card{transition:none}.slot.own .card:hover{transform:none}}
-</style>
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.wrap{max-width:1000px;margin:0 auto;padding-block:22px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:minmax(0,1fr);gap:26px}
+a{color:var(--ink)}
 
+h1{margin:8px 0 0;font:900 clamp(48px,13vw,112px)/.95 var(--display);letter-spacing:.02em;overflow-wrap:anywhere}
+h1 span{-webkit-text-stroke:clamp(5px,1.1vw,10px) #1B1418;paint-order:stroke fill}
+.lead{margin:12px 0 0;max-width:60ch;color:var(--soft);font-size:18px}
+.lead b{color:var(--ink)}
+
+/* плитки: картинка слева, текст справа — на любой ширине */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
+.t{display:grid;grid-template-columns:clamp(92px,24vw,132px) minmax(0,1fr);gap:16px;align-items:center;text-decoration:none;color:var(--ink);
+  background:var(--sheet);border:3px solid var(--ink);border-radius:22px;padding:12px;box-shadow:0 5px 0 var(--ink)}
+.t:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--ink)}
+.t:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+@media (prefers-reduced-motion: no-preference){.t{transition:transform .12s,box-shadow .12s}}
+.art{aspect-ratio:1;border-radius:16px;border:2.5px solid #1B1418;background:var(--c);display:grid;place-items:center;overflow:hidden;position:relative}
+.art img{display:block}
+.art.tarot img{height:88%;width:auto;border-radius:6px;transform:rotate(-6deg);box-shadow:3px 3px 0 #1B1418}
+.art.pets img{width:96%;height:auto}
+.art.cmd{gap:6px;align-content:center}
+.art.cmd b{font:900 clamp(13px,3.6vw,17px)/1 var(--display);background:#FFF8EC;color:#1B1418;border:2.5px solid #1B1418;border-radius:9px;padding:6px 9px}
+.art.cmd b:first-child{transform:rotate(-7deg)}
+.art.cmd b:last-child{transform:rotate(5deg);background:#6CC08B}
+.art.prof .ava{width:58%;aspect-ratio:1;border-radius:50%;background:#F7D44C;border:3px solid #1B1418;box-shadow:4px 4px 0 #6B3FA0;display:grid;place-items:center;font:900 clamp(24px,7vw,40px)/1 var(--display);color:#1B1418}
+.art.prof i{position:absolute;bottom:12%;font:900 clamp(10px,2.6vw,12px)/1 var(--display);font-style:normal;text-transform:uppercase;background:#1B1418;color:#F7D44C;border-radius:999px;padding:5px 8px;transform:rotate(-4deg)}
+.t h2{margin:0;font:900 clamp(20px,5.4vw,26px)/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em}
+.t p{margin:6px 0 0;color:var(--soft);font-size:15px;line-height:1.4}
+.t .go{display:inline-block;margin-top:8px;font:900 14px/1 var(--display);text-transform:uppercase;letter-spacing:.04em}
+
+footer{color:var(--soft);font-size:15px}
+footer a{font-weight:900}
+@media (forced-colors: active){.t,.art{border-color:CanvasText}}
+</style>
+</head>
+<body>
 <div class="wrap">
+  <nav class="sn" data-page="home"></nav><script src="sitenav.js"></script>
   <header>
-    <h1 aria-label="Колода gluponya"><span style="color:#E8553F">К</span><span style="color:#F29A3A">О</span><span style="color:#F7D44C">Л</span><span style="color:#6CC08B">О</span><span style="color:#4F86C6">Д</span><span style="color:#F49CB9">А</span> <span style="color:#F7D44C">gluponya</span></h1>
-    <p class="lead">Карта дня за баллы канала на <b>twitch.tv/gluponya</b>. Одна карта в сутки и своё предсказание к ней. Что нарисовано на картах, узнаешь, только когда вытянешь. Собери все <b id="tot">13</b><span id="vipline"></span></p>
-    <div class="stats" id="stats"></div>
+    <h1 aria-label="gluponya"><span style="color:#E8553F">g</span><span style="color:#F29A3A">l</span><span style="color:#F7D44C">u</span><span style="color:#6CC08B">p</span><span style="color:#4F86C6">o</span><span style="color:#F49CB9">n</span><span style="color:#F7D44C">y</span><span style="color:#E8553F">a</span></h1>
+    <p class="lead">Всё, что есть у чата на стриме <b>twitch.tv/gluponya</b>: своя колода таро, питомцы, команды и профили зрителей</p>
   </header>
 
-  <section class="odds" aria-label="Шансы по редкости" id="odds"></section>
+  <main class="tiles">
+    <a class="t" href="/tarot" data-to="tarot.html">
+      <span class="art tarot" style="--c:#6B3FA0"><img src="cards/back.webp" alt="" width="72" height="124"></span>
+      <span><h2>Колода таро</h2><p>Карта дня за баллы канала. Своя колода по личному коду, первооткрыватели и статистика</p><span class="go">Открыть →</span></span>
+    </a>
+    <a class="t" href="/pets" data-to="pets.html">
+      <span class="art pets" style="--c:#6CC08B"><img src="pets/fish_adult_pure_happy.webp" alt="" width="120" height="120"></span>
+      <span><h2>Питомцы чата</h2><p>Кто растёт на стриме сейчас и кто уже вырос. Корми за баллы — и, может, заберёшь его себе</p><span class="go">Открыть →</span></span>
+    </a>
+    <a class="t" href="/commands" data-to="commands.html">
+      <span class="art cmd" style="--c:#F7D44C" aria-hidden="true"><b>!кот</b><b>!трек</b></span>
+      <span><h2>Команды чата</h2><p>Все !команды и награды за баллы. Нажми на команду — она скопируется</p><span class="go">Открыть →</span></span>
+    </a>
+    <a class="t" href="/profile" data-to="profile.html">
+      <span class="art prof" style="--c:#F49CB9" aria-hidden="true"><span class="ava">★</span><i>титул</i></span>
+      <span><h2>Профили зрителей</h2><p>Титулы, карты и питомцы зрителей. Свой появится, если написать !профиль в чате</p><span class="go">Открыть →</span></span>
+    </a>
+  </main>
 
-  <nav class="tabs" role="tablist" aria-label="Разделы альбома">
-    <button type="button" role="tab" id="t-mine" aria-selected="true" aria-controls="deck">Моя колода</button>
-    <button type="button" role="tab" id="t-first" aria-selected="false" aria-controls="deck">Первооткрыватели</button>
-    <button type="button" role="tab" id="t-stats" aria-selected="false" aria-controls="deck">Статистика</button>
-  </nav>
-
-  <form class="find" id="find">
-    <label for="code">Личный код</label>
-    <input id="code" class="code" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="XXXX-XXXX">
-    <button type="submit">Открыть мою колоду</button>
-    <button type="button" class="ghost" id="out">Выйти</button>
-  </form>
-
-  <section aria-live="polite" id="deck">
-    <div class="who" id="who"></div>
-    <div class="grid" id="grid" style="margin-top:16px"></div>
-  </section>
-
-  <div class="two">
-    <section class="panel">
-      <h2>Коллекционеры</h2>
-      <ol class="lb" id="lb"></ol>
-    </section>
-    <section class="panel">
-      <h2>Кто тянул недавно</h2>
-      <ul class="feed" id="feed"></ul>
-    </section>
-  </div>
-
-  <footer id="foot"></footer>
+  <footer>Стримы по понедельникам, четвергам и субботам с 11:00 по Киеву на <a href="https://twitch.tv/gluponya" rel="noopener">twitch.tv/gluponya</a></footer>
 </div>
-
-<script id="tarot-data" type="application/json"></script>
-<script src="cardview.js"></script>
 <script>
 (() => {
-  const $ = id => document.getElementById(id);
-  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-  const RCOL = { common: '#8C7B72', rare: '#4F86C6', myth: '#8E54D6', legend: '#D9A21E' };
-  const ALPH = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{8}$/;
-  let D = null, IMG = 'cards/', ME = null, TAB = 'mine';
-  const DEMO = /[?&]demo=/.test(location.search);   // тестовый альбом с выдуманными зрителями
-  const raw = $('tarot-data').textContent.trim();
-  const store = { get(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
-                  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
-                  del(k) { try { localStorage.removeItem(k); } catch (e) {} } };
-
-  const card = id => D.cards.find(x => x.id === id);
-  const mine = id => !!(ME && ME.cards && ME.cards[id]);
-
-  // ---- личный код: PBKDF2 → HMAC; колода в данных лежит зашифрованной (tarot.py _seal) ----
-  // соль своя у каждой колоды (d.s): пробуем колоды своей «корзинки» (d.h), их немного
-  const enc = new TextEncoder();
-  const b64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
-  const hex = buf => Array.from(new Uint8Array(buf), x => x.toString(16).padStart(2, '0')).join('');
-  async function derive(base, salt) {
-    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: D.kdf.iter, hash: 'SHA-256' }, base, 256);
-    const k = await crypto.subtle.importKey('raw', bits, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    return { k, id: hex(await crypto.subtle.sign('HMAC', k, enc.encode('id'))).slice(0, 24) };
-  }
-  async function unlock(code) {
-    if (!(window.crypto && crypto.subtle)) throw new Error('nocrypto');
-    const base = await crypto.subtle.importKey('raw', enc.encode(code), 'PBKDF2', false, ['deriveBits']);
-    const decks = D.decks || [];
-    let d = null, k = null;
-    if (D.kdf.salt) {            // старые данные: одна соль на все колоды
-      const r = await derive(base, enc.encode(D.kdf.salt));
-      d = decks.find(x => x.i === r.id) || null; k = r.k;
-    } else {
-      const hb = D.kdf.hb || 0;
-      let h = 0;
-      if (hb) h = new DataView(await crypto.subtle.digest('SHA-256', enc.encode('gluponya-tarot-hint' + code))).getUint32(0) & ((1 << hb) - 1);
-      const cand = decks.filter(x => x.s && (!hb || x.h === h));
-      const rs = await Promise.all(cand.map(x => derive(base, b64(x.s))));
-      const j = rs.findIndex((r, n) => r.id === cand[n].i);
-      if (j >= 0) { d = cand[j]; k = rs[j].k; }
-    }
-    if (!d) return null;
-    const nonce = b64(d.n), ct = b64(d.c), out = new Uint8Array(ct.length);
-    for (let i = 0, off = 0; off < ct.length; i++) {
-      const blk = new Uint8Array(2 + nonce.length + 4); blk.set(enc.encode('ks')); blk.set(nonce, 2);
-      new DataView(blk.buffer).setUint32(2 + nonce.length, i);
-      const ks = new Uint8Array(await crypto.subtle.sign('HMAC', k, blk));
-      for (let j = 0; j < ks.length && off < ct.length; j++, off++) out[off] = ct[off] ^ ks[j];
-    }
-    return JSON.parse(new TextDecoder().decode(out));
-  }
-  const norm = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
-
-  function slot(c, n, own, lines, num) {
-    const f = el('figure', 'slot ' + (own ? c.rarity + ' own' : 'miss'));
-    const box = el('div', 'card');
-    const img = el('img'); img.src = IMG + (own ? c.id : 'back') + '.webp';
-    img.alt = own ? `${c.num} ${c.title}` : 'рубашка: карта ещё не открыта'; img.loading = 'lazy';
-    box.appendChild(img); f.appendChild(box);
-    if (own && ME && ME.cards && ME.cards[c.id]) {            // своя карта: клик — на весь экран
-      box.tabIndex = 0; box.setAttribute('role', 'button'); box.setAttribute('aria-label', `Открыть карту ${c.num} ${c.title}`);
-      box.addEventListener('click', () => openCard(c.id));
-      box.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCard(c.id); } });
-    }
-    if (!own && num) box.appendChild(el('span', 'num', c.num));
-    if (own && n > 1) f.appendChild(el('span', 'cnt', '×' + n));
-    const cap = el('figcaption');
-    cap.appendChild(el('b', null, own ? `${c.num} · ${c.title}` : '???'));
-    lines.forEach(x => cap.appendChild(x));
-    f.appendChild(cap);
-    return f;
-  }
-  const rt = c => el('span', 'rt ' + c.rarity, D.rarity[c.rarity].label);
-  function openCard(id) {
-    if (!window.CardView || !ME) return;
-    const list = D.cards.filter(c => mine(c.id));
-    const items = list.map(c => ({ img: IMG + c.id + '.webp', back: IMG + 'back.webp', num: c.num, title: c.title, rarity: c.rarity,
-      rlabel: D.rarity[c.rarity].label, n: ME.cards[c.id], log: (ME.log || {})[c.id] || [] }));
-    CardView.open(items, Math.max(0, list.findIndex(c => c.id === id)));
-  }
-
-  function showMine(msg) {
-    const who = $('who'); who.replaceChildren();
-    const g = $('grid'); g.replaceChildren();
-    if (!ME) {
-      who.appendChild(el('h2', null, 'Твоя колода'));
-      who.appendChild(el('span', 'note', msg || 'Введи личный код: откроются карты, которые ты уже вытянул(а). Код приходит в личку Twitch после первой карты, ещё раз его пришлёт команда !код в чате'));
-      D.cards.forEach(c => g.appendChild(slot(c, 0, false, [el('span', 'rt', 'кто знает, что там')])));
-      return;
-    }
-    const have = D.cards.filter(c => mine(c.id)).length;
-    who.appendChild(el('h2', null, ME.name || 'Твоя колода'));
-    const bar = el('div', 'bar'); const i = el('i'); i.style.width = Math.round(have / D.total * 100) + '%'; bar.appendChild(i);
-    bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', `собрано ${have} из ${D.total}`);
-    who.appendChild(bar);
-    const dup = ME.dupes || 0, tc = D.trade || 5;
-    who.appendChild(el('span', 'note', `${have} из ${D.total} карт · вытянуто ${ME.draws} · повторок ${dup}` + (have >= D.total ? ' · вся колода!' : dup >= tc ? ' · можно поменять на новую: !обмен в чате' : '') + (have ? ' · нажми на карту, чтобы рассмотреть её и прочитать предсказания' : '')));
-    D.cards.forEach(c => { const own = mine(c.id);
-      g.appendChild(slot(c, own ? ME.cards[c.id] : 0, own, [own ? rt(c) : el('span', 'rt', 'кто знает, что там')])); });
-  }
-  function showFirst() {
-    const who = $('who'); who.replaceChildren();
-    const found = D.cards.filter(c => (D.first || {})[c.id]).length;
-    who.appendChild(el('h2', null, 'Первооткрыватели'));
-    who.appendChild(el('span', 'note', `Кто первым на канале вытянул каждую карту. Открыто ${found} из ${D.total}. Сами карты видно, только когда они есть в твоей колоде`));
-    const g = $('grid'); g.replaceChildren();
-    D.cards.forEach(c => {
-      const f = (D.first || {})[c.id], own = mine(c.id);
-      const line = el('span', 'first');
-      if (f) { line.appendChild(el('i', null, 'первым: ')); line.append(f.name); if (f.at) line.appendChild(el('i', null, ' · ' + f.at)); }
-      else line.appendChild(el('i', null, 'ещё никто не вытянул'));
-      g.appendChild(slot(c, 0, own, own ? [rt(c), line] : [line], true));
-    });
-  }
-  // статистика: только цифры, без ников. Счётчики по картам отстают на сутки (D.stats.lag_h), чтобы по свежему
-  // приросту и ленте «кто тянул недавно» нельзя было понять, кому какая карта выпала
-  function showStats() {
-    const S = D.stats || {}, who = $('who'); who.replaceChildren();
-    who.appendChild(el('h2', null, 'Статистика колоды'));
-    who.appendChild(el('span', 'note', `Открыто ${S.opened || 0} из ${D.total} карт · вытянуто ${S.draws || 0} · обменов ${S.trades || 0}` + (S.full ? ` · полных колод ${S.full}` : '') + `. Счётчики по картам отстают на ${S.lag_h || 24} ч, чтобы чужие карты оставались тайной`));
-    const g = $('grid'); g.replaceChildren(); g.style.display = 'block';
-    const st = el('div', 'st');
-    const rows = (title, items, color) => { const sec = el('section'); sec.appendChild(el('h3', null, title));
-      const ul = el('ul', 'rows'); const max = Math.max(1, ...items.map(x => x.n));
-      items.forEach(x => { const li = el('li'); const nm = el('span', 'nm'); if (color) { const d = el('i'); d.style.background = color(x); nm.appendChild(d); } nm.append(x.label);
-        const tr = el('span', 'tr'); const f = el('i'); f.style.width = Math.round(x.n / max * 100) + '%'; tr.appendChild(f);
-        li.append(nm, tr, el('span', 'n', String(x.n))); ul.appendChild(li); });
-      if (!items.length) ul.appendChild(el('li', 'empty', 'пока пусто'));
-      sec.appendChild(ul); return sec; };
-    const byRar = ['common', 'rare', 'myth', 'legend'].map(k => ({ label: D.rarity[k].label, n: (S.rarity || {})[k] || 0, k }));
-    st.appendChild(rows('Сколько раз выпала редкость', byRar, x => RCOL[x.k]));
-    const byCard = D.cards.map(c => ({ label: `${c.num} ${c.title}`, n: (S.cards || {})[c.id] || 0, k: c.rarity })).filter(x => x.n > 0).sort((a, b) => b.n - a.n);
-    st.appendChild(rows('Какие карты выпадали чаще', byCard, x => RCOL[x.k]));
-    const never = D.cards.filter(c => !(D.first || {})[c.id]);
-    if (never.length) { const sec = el('section'); sec.appendChild(el('h3', null, `Ещё никто не вытянул (${never.length})`));
-      sec.appendChild(el('p', 'note', never.map(c => c.title).join(' · '))); st.appendChild(sec); }
-    const sec = el('section'); sec.appendChild(el('h3', null, 'Карт в день'));
-    const days = S.days || []; const dl = el('ul', 'days'); const dmax = Math.max(1, ...days.map(d => d[1]));
-    days.forEach(([d, n]) => { const li = el('li'); const bar = el('i'); bar.style.height = Math.round(n / dmax * 80) + '%';
-      const lab = el('span', null, d.slice(8, 10) + '.' + d.slice(5, 7)); lab.dataset.d = d.slice(8, 10);   // на узком экране только число
-      li.append(el('b', null, String(n)), bar, lab); dl.appendChild(li); });
-    if (!days.length) dl.appendChild(el('li', 'empty', 'пока пусто'));
-    sec.appendChild(dl); st.appendChild(sec);
-    g.appendChild(st);
-  }
-  function show() {
-    ['mine', 'first', 'stats'].forEach(k => $('t-' + k).setAttribute('aria-selected', TAB === k));
-    $('out').hidden = !ME;
-    $('grid').style.display = '';
-    if (TAB === 'first') showFirst(); else if (TAB === 'stats') showStats(); else showMine();
-    renderFeed();
-  }
-  async function login(v, quiet) {
-    const code = norm(v);
-    if (!ALPH.test(code)) { if (!quiet) { TAB = 'mine'; ME = null; show(); showMine('Код из 8 знаков, вида XXXX-XXXX. Его присылает станция в личку Twitch'); } return; }
-    if (!quiet && !ME) showMine('Открываю колоду…');   // несколько PBKDF2: на телефоне секунда-другая
-    try {
-      const me = await unlock(code);
-      if (!me) { if (!quiet) { ME = null; TAB = 'mine'; show(); showMine('Такого кода нет. Если колода новая, она появится в альбоме в течение часа. Новый код: !код новый в чате'); } return; }
-      ME = me; if (!DEMO) store.set('tarot-code', code); $('code').value = code.slice(0, 4) + '-' + code.slice(4);
-      show();
-    } catch (e) { if (!quiet) showMine('Этот браузер не умеет открывать коды. Попробуй другой'); }
-  }
-
-  // кто тянул недавно: только ник и время, карта всегда рубашкой — не палим, что кому выпало
-  function renderFeed() {
-    const fd = $('feed'); fd.replaceChildren();
-    (D.recent || []).forEach(r => { const li = el('li'); const img = el('img'); img.src = IMG + 'back.webp'; img.alt = '';
-      const t = el('span', 't'); t.appendChild(el('b', null, r.name)); t.append(' вытянул(а) карту дня');
-      li.append(img, t, el('time', null, r.at || '')); fd.appendChild(li); });
-    if (!fd.children.length) fd.appendChild(el('li', 'empty', 'Пока никто не тянул'));
-  }
-  function render() {
-    D.cards = D.cards || []; D.total = D.total || D.cards.length;
-    $('tot').textContent = D.total;
-    $('vipline').textContent = (D.trade ? `. ${D.trade} повторок меняются на новую карту` : '') + (D.vip ? '. За всю колоду VIP 💎' : '');
-    const st = $('stats'); st.replaceChildren();
-    const chip = (t, b) => { const c = el('span', 'chip'); c.append(t + ' '); c.appendChild(el('b', null, b)); return c; };
-    st.append(chip('вытянуто карт', D.draws || 0), chip('коллекционеров', D.collectors || 0), chip('собрали всю колоду', D.full || 0));
-    const od = $('odds'); od.replaceChildren();
-    ['common', 'rare', 'myth', 'legend'].forEach(k => { const c = el('span', 'chip'); const dot = el('i'); dot.style.background = RCOL[k];
-      c.append(dot, `${D.rarity[k].label} ${String(D.rarity[k].pct).replace('.', ',')}%`); od.appendChild(c); });
-    const lb = $('lb'); lb.replaceChildren();
-    (D.leaders || []).forEach(u => { const li = el('li'); li.append(el('span', 'nm', u.name), el('span', 'sc', `${u.n}/${D.total}`)); lb.appendChild(li); });
-    if (!lb.children.length) lb.appendChild(el('li', 'empty', 'Пока никого. Первая карта дня ждёт на стриме'));
-    const upd = new Date((D.updated || 0) * 1000);
-    $('foot').textContent = `Обновлено ${upd.toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Тянуть карту: награда «Карта дня 🔮» за баллы на twitch.tv/gluponya. Свои карты в чате: !коллекция, обмен повторок: !обмен, код альбома: !код, свой профиль с витриной: !профиль`;
-    if (D.demo) st.prepend(chip('🧪 ТЕСТОВЫЕ ДАННЫЕ, код', D.demo.code.slice(0, 4) + '-' + D.demo.code.slice(4)));
-    show();
-    const saved = D.demo ? D.demo.code : store.get('tarot-code');
-    if (saved) login(saved, true);
-  }
-  $('find').addEventListener('submit', e => { e.preventDefault(); TAB = 'mine'; login($('code').value); });
-  $('out').addEventListener('click', () => { ME = null; store.del('tarot-code'); $('code').value = ''; show(); });
-  $('t-mine').addEventListener('click', () => { TAB = 'mine'; show(); });
-  $('t-first').addEventListener('click', () => { TAB = 'first'; show(); });
-  $('t-stats').addEventListener('click', () => { TAB = 'stats'; show(); });
-
-  if (raw && raw !== '__TAROT' + '_DATA__') { try { D = JSON.parse(raw); IMG = 'cards/'; } catch (e) { D = null; } }
-  if (D) render();
-  else (function load(first) {
-    const api = 'https://api.github.com/repos/gluponya/gluponya-tarot/contents/tarot_public.json?ref=data';
-    const raw = 'https://raw.githubusercontent.com/gluponya/gluponya-tarot/data/tarot_public.json?t=' + Date.now();
-    const get = u => fetch(u, { cache: 'no-store', headers: u === api ? { Accept: 'application/vnd.github.raw+json' } : {} })
-      .then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
-    return get(api).catch(() => get(raw)).then(j => {
-      if (!D || j.updated !== D.updated) { D = j; render(); }
-      setTimeout(function tick() { if (document.hidden) return setTimeout(tick, 15000); load(false).catch(() => setTimeout(tick, 120000)); }, 90000);
-    });
-  })(true)
-    .catch(() => { $('who').appendChild(el('p', 'empty', 'Альбом не загрузился. Обнови страницу через минутку')); });
+  const GH = {"owner": "gluponya", "repo": "gluponya-tarot"};                                  // на GitHub сюда подставляется {owner, repo}
+  if (GH) document.querySelectorAll('a[data-to]').forEach(a => { a.href = a.dataset.to; });
 })();
 </script>
-
 </body>
 </html>
