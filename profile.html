@@ -47,6 +47,9 @@ a{color:var(--ink)}
 h2{margin:0;font:900 24px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
 .sec{display:grid;gap:14px}
 .sec>p{margin:0;color:var(--soft)}
+.how{background:var(--sheet);border:3px solid var(--ink);border-radius:18px;padding:16px 18px;display:grid;gap:10px;justify-items:start;box-shadow:6px 6px 0 var(--plum)}
+.how p{margin:0}
+.how code{font:900 clamp(26px,5vw,36px)/1 var(--display);padding:10px 16px;border-radius:12px;background:var(--yellow);color:#1B1418;border:3px solid #1B1418;user-select:all}
 .shelf{display:flex;flex-wrap:wrap;gap:clamp(16px,3vw,30px);padding:26px clamp(16px,3vw,30px) 30px;border-radius:24px;border:3px solid var(--ink);
   background:linear-gradient(180deg,color-mix(in srgb,var(--plum) 22%,var(--sheet)),var(--sheet) 70%);position:relative}
 .shelf::after{content:"";position:absolute;left:16px;right:16px;bottom:16px;height:10px;border-radius:6px;background:color-mix(in srgb,var(--ink) 18%,transparent)}
@@ -119,6 +122,11 @@ footer{color:var(--soft);font-size:14px}
   function nobody(D, text) {
     const s = el('section', 'sec');
     s.appendChild(el('h2', null, text));
+    const how = el('div', 'how');                  // как завести свой: первым делом, а не под списком чужих
+    how.appendChild(el('p', null, 'Свой профиль появится сам, когда получишь первую ачивку или карту таро. Или напиши в чате на стриме:'));
+    how.appendChild(el('code', null, '!профиль'));
+    how.appendChild(el('p', 'why', 'Бот покажет твою карточку на экране и пришлёт в чат ссылку на твою страницу.'));
+    s.appendChild(how);
     const names = Object.values(D.profiles || {}).sort((a, b) => (b.pts || 0) - (a.pts || 0));
     if (names.length) {
       s.appendChild(el('p', null, 'Профили зрителей канала:'));
@@ -126,7 +134,6 @@ footer{color:var(--soft);font-size:14px}
       names.forEach(p => { const a = el('a', 'chip', p.name); a.href = '?u=' + encodeURIComponent(p.login); l.appendChild(a); });
       s.appendChild(l);
     }
-    s.appendChild(el('p', null, 'Свой профиль появится здесь, если написать !профиль в чате на стриме.'));
     app.appendChild(s);
   }
 
