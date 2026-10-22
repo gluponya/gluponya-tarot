@@ -24,8 +24,6 @@ body{margin:0;font:700 16px/1.45 var(--body);
   background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) .9px,transparent 1.2px);background-size:7px 7px}
 .wrap{max-width:1000px;margin:0 auto;padding-block:22px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:26px}
 a{color:var(--ink)}
-.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:900 14px/1 var(--display);text-transform:uppercase;letter-spacing:.05em}
-.top a{text-decoration:none;padding:9px 12px;border:2.5px solid var(--ink);border-radius:999px;background:var(--sheet)}
 .hero{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
 .ava{width:clamp(96px,18vw,148px);aspect-ratio:1;border-radius:50%;border:5px solid #1B1418;background:var(--yellow);display:grid;place-items:center;overflow:hidden;
   box-shadow:6px 6px 0 var(--plum);font:900 56px/1 var(--display);color:#1B1418}
@@ -93,7 +91,7 @@ footer{color:var(--soft);font-size:14px}
 </head>
 <body>
 <div class="wrap" id="app">
-  <nav class="top"><a id="toAlbum" href="/tarot">← Колода gluponya</a><a href="https://twitch.tv/gluponya" rel="noopener">twitch.tv/gluponya</a></nav>
+  <nav class="sn" data-page="profile"></nav><script src="sitenav.js"></script>
   <p class="empty" id="msg">Загружаю профиль…</p>
 </div>
 <script src="cardview.js"></script>
@@ -103,13 +101,12 @@ footer{color:var(--soft);font-size:14px}
   let IMG = 'cards/', TAMA = '/static/tama/';   // на GitHub питомцы лежат в pets/ (gh_pages.py)
   const DEMO = /[?&]demo=/.test(location.search);
   const U = (new URLSearchParams(location.search).get('u') || '').toLowerCase().replace(/^@/, '');
-  const ALBUM = GH ? './' : '/tarot';
+  const ALBUM = GH ? 'tarot.html' : '/tarot';
   const app = document.getElementById('app');
   const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
   const pl = (n, a, b, c) => { n = Math.abs(n); return n % 10 === 1 && n % 100 !== 11 ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? b : c; };
   const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
   const day = t => { if (!t) return 'в первые дни колоды'; const d = new Date(t * 1000); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
-  document.getElementById('toAlbum').href = ALBUM;
 
   function load() {
     if (!GH) return fetch('/hub/profile/state' + (DEMO ? '?demo=1' : ''), { cache: 'no-store' }).then(r => r.json());
