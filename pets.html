@@ -39,7 +39,8 @@ h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spa
 .now .pic img{width:100%;height:100%;object-fit:contain;display:block;animation:bob 4.2s ease-in-out infinite;transform-origin:50% 88%}
 @keyframes bob{50%{transform:rotate(1.6deg) translateY(-4px)}0%,100%{transform:rotate(-1.6deg)}}
 .now .info{display:grid;gap:10px;min-width:0}
-.tag{font:900 13px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;color:var(--soft)}
+.tag{display:inline-flex;align-items:center;gap:8px;font:900 13px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--soft);justify-self:start}
+.tag b{font-size:14px;letter-spacing:.06em;background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:999px;padding:6px 11px;font-variant-numeric:tabular-nums}
 .nm{margin:0;font:900 clamp(34px,6vw,58px)/1 var(--display);overflow-wrap:anywhere}
 .nm.none{color:var(--soft);font-size:clamp(26px,4vw,38px)}
 .facts{display:flex;flex-wrap:wrap;gap:8px}
@@ -61,13 +62,22 @@ h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spa
 .pet .meta{font:800 13px/1.3 var(--body);color:var(--soft);overflow-wrap:anywhere}
 .pet .meta b{color:var(--ink)}
 .empty{color:var(--soft);font-size:16px;margin:0;padding:18px;border:2px dashed var(--line);border-radius:16px}
+.how{background:var(--sheet);border:3px solid var(--ink);border-radius:20px;padding:18px;display:grid;gap:16px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:auto 1fr;grid-template-rows:36px auto;column-gap:12px;row-gap:6px;min-width:0}
+.steps li::before{content:counter(s);grid-row:1/3;align-self:start;width:36px;height:36px;display:grid;place-items:center;font:900 18px/1 var(--display);background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:50%}
+.steps b{font:900 18px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;align-self:center}
+.steps span,.chatline{font-size:14px;color:var(--soft);line-height:1.5}
+.chatline{margin:0;padding-top:12px;border-top:2px dashed var(--line)}
+.how code{display:inline-block;font:900 13px/1 var(--display);letter-spacing:.02em;background:var(--yellow);color:#1B1418;border:2px solid #1B1418;border-radius:999px;padding:3px 9px;margin:-5px 0;white-space:nowrap;vertical-align:baseline;position:relative;top:-1px}
+.how code.rw{background:var(--pink)}
 footer{color:var(--soft);font-size:14px}
 footer a{color:var(--ink)}
 
 body.obs{background-size:9px 9px}
 body.obs .wrap{max-width:none;width:1920px;height:1080px;box-sizing:border-box;padding:48px 64px;gap:30px;overflow:hidden;align-content:start}
 body.obs h1{font-size:88px}
-body.obs footer,body.obs .lead{display:none}
+body.obs footer,body.obs .lead,body.obs .how{display:none}
 body.obs .now{grid-template-columns:300px 1fr;padding:18px 24px}
 body.obs .grid{grid-template-columns:repeat(6,1fr)}
 @media (max-width:640px){.now{grid-template-columns:1fr}.now .pic{max-width:300px;width:100%;margin:0 auto}}
@@ -78,18 +88,28 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
 <div class="wrap">
   <header>
     <h1 aria-label="Питомцы gluponya"><span style="color:#FF8FB1">П</span><span style="color:#F29A3A">И</span><span style="color:#F7D44C">Т</span><span style="color:#6CC08B">О</span><span style="color:#5FD3C6">М</span><span style="color:#4F86C6">Ц</span><span style="color:#F49CB9">Ы</span> <span style="color:#F7D44C">gluponya</span></h1>
-    <p class="lead">Каждую неделю чат на <b>twitch.tv/gluponya</b> растит общего питомца: кормит его за баллы канала, и от еды зависит, <b>кто вылупится</b>, какая у него вырастет деталь и какой будет характер. Имя тоже придумывает чат. Здесь живут все, кто уже вылупился.</p>
+    <p class="lead">Чат на <b>twitch.tv/gluponya</b> каждую неделю растит общего питомца. Чем кормите — такой и вырастет. Здесь живут все, кто уже вырос.</p>
     <div class="stats" id="stats"></div>
   </header>
 
   <section aria-live="polite" id="now"></section>
+
+  <section class="how" aria-label="Как играть">
+    <h2>Как играть</h2>
+    <ol class="steps">
+      <li><b>Корми</b><span>награда <code class="rw">Покормить питомца 🍼</code> за баллы: сладкое, острое, рыбка или зелень. Каждое кормление — билет в розыгрыш</span></li>
+      <li><b>Назови</b><span>вылупился — пиши <code>!имя Пушок</code>, лучшие варианты идут в опрос</span></li>
+      <li><b>Забери</b><span>вырос — Оня разыгрывает его среди кормивших. Победитель уносит питомца в свой <code>!профиль</code></span></li>
+    </ol>
+    <p class="chatline">В чате: <code>!питомец</code> кто растёт сейчас · <code>!имя</code> как зовут · <code>!питомцы</code> эта галерея</p>
+  </section>
 
   <section style="display:grid;gap:14px">
     <h2>Выросли</h2>
     <div class="grid" id="grid"></div>
   </section>
 
-  <footer>Кормить питомца: награда «Покормить питомца 🍼» на <a href="https://twitch.tv/gluponya">twitch.tv/gluponya</a>. В чате: !питомец, !имя, !питомцы. <span id="tarot"></span></footer>
+  <footer>Кормить питомца: награда «Покормить питомца 🍼» на <a href="https://twitch.tv/gluponya">twitch.tv/gluponya</a>. В чате: !питомец, !имя, !питомцы (подробнее выше). <span id="tarot"></span></footer>
 </div>
 <script>
 (() => {
@@ -125,8 +145,8 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
     const box = $('now');
     if (D.egg && !D.now) {
       box.innerHTML = `<div class="now" style="--c:var(--yellow)"><div class="pic"><img src="${IMG(D.egg.img)}" alt="Яйцо"></div>
-        <div class="info"><div class="tag">Сейчас · №${D.egg.gen}</div><p class="nm none">Яйцо греется 🥚</p>
-        <div class="carers">Кто вылупится, решает еда: сладкое, острое, рыбка или зелень. Счёт — секрет, видно только по свечению яйца на стриме.</div></div></div>`;
+        <div class="info"><div class="tag"><b>№${D.egg.gen}</b>Сейчас</div><p class="nm none">Яйцо греется 🥚</p>
+        <div class="carers">Кто вылупится, решает еда: сладкое, острое, рыбка или зелень. Счёт секретный, подсказка только в свечении яйца.</div></div></div>`;
       return;
     }
     const p = D.now;
@@ -141,7 +161,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
       naming = `<div class="naming">🗳 Голосуем за имя в опросе над чатом на Twitch!</div>`;
     }
     box.innerHTML = `<div class="now" style="--c:${color(p.family)}"><div class="pic"><img src="${IMG(p.img)}" alt="${esc(p.name || f[0])}"></div>
-      <div class="info"><div class="tag">Сейчас растёт · №${p.gen}${p.hatched ? ' · вылупился ' + esc(p.hatched) : ''}</div>
+      <div class="info"><div class="tag"><b>№${p.gen}</b>Сейчас растёт${p.hatched ? ' · вылупился ' + esc(p.hatched) : ''}</div>
       ${p.name ? `<p class="nm">${esc(p.name)}</p>` : `<p class="nm none">${esc(f[0])} пока без имени</p>`}
       <div class="facts">${facts(p)}</div>
       ${p.name && p.named_by ? `<div class="carers">Автор имени: <b>${esc(p.named_by)}</b></div>` : ''}
@@ -158,7 +178,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
         <div class="pic"><span class="num">№${p.gen}</span><img loading="lazy" src="${IMG(p.img)}" alt="${esc(p.name || f[0])}"></div>
         ${p.name ? `<h3>${esc(p.name)}</h3>` : `<h3 class="none">без имени</h3>`}
         <div class="who"><b>${esc(f[0])} ${f[1]}</b>${p.part ? ' + ' + esc((PART[p.part] || '').replace(/ \S+$/, '')) : ', чистокровный'}${p.char && p.phase === 'adult' ? ' · ' + esc(CHAR[p.char] || '') : p.phase !== 'adult' ? ' · ' + esc(STAGE[p.phase] || '') : ''}</div>
-        <div class="meta">${p.hatched || p.born ? 'вылупился ' + esc(p.hatched || p.born) : ''}${p.done ? ' · вырос ' + esc(p.done) : ''}${p.named_by ? `<br>автор имени: <b>${esc(p.named_by)}</b>` : ''}${OBS ? '' : (p.carers && p.carers.length ? '<br>' + carers(p, 3) : '')}</div>
+        <div class="meta">${p.hatched || p.born ? 'вылупился ' + esc(p.hatched || p.born) : ''}${p.done ? ' · вырос ' + esc(p.done) : ''}${p.named_by ? `<br>автор имени: <b>${esc(p.named_by)}</b>` : ''}${p.owner && (p.owner.name || p.owner.login) ? `<br>живёт у <b>${esc(p.owner.name || p.owner.login)}</b>` : ''}${OBS ? '' : (p.carers && p.carers.length ? '<br>' + carers(p, 3) : '')}</div>
       </figure>`;
     }).join('') : `<p class="empty">${D.now ? 'Первый питомец ещё растёт, скоро он будет здесь 🌱' : 'Первый питомец ещё в яйце 🥚'}</p>`;
   }
@@ -176,7 +196,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
     return { now: { gen: 4, family: 'fish', part: 'flame', char: null, phase: 'child', name: 'Бульбик', named_by: 'kringex', img: 'fish_child_flame_normal',
                     hatched: '15.10 22:10', carers: [['кот_в_тапке', 14], ['v4rich', 9], ['k0r1___', 6]] }, egg: null,
              naming: null,
-             pets: [{ gen: 3, family: 'green', part: null, char: 'happy', phase: 'adult', name: 'Мох', named_by: 'vvmeansvlad', img: 'green_adult_pure_happy', hatched: '08.10 21:40', done: '12.10 23:05', carers: [['barsnow_official', 21], ['кот_в_тапке', 11]] },
+             pets: [{ gen: 3, family: 'green', part: null, char: 'happy', phase: 'adult', name: 'Мох', named_by: 'vvmeansvlad', img: 'green_adult_pure_happy', hatched: '08.10 21:40', done: '12.10 23:05', carers: [['barsnow_official', 21], ['кот_в_тапке', 11]], owner: { login: 'barsnow_official', name: 'barsnow_official' }, gift: 'top' },
                     { gen: 2, family: 'spicy', part: 'sprinkles', char: 'grumpy', phase: 'adult', name: 'Перчик', named_by: 'v4rich', img: 'spicy_adult_sprinkles_grumpy', hatched: '01.10 22:00', done: '05.10 23:30', carers: [['k0r1___', 17]] },
                     { gen: 1, family: 'sweet', part: 'fins', char: 'lazy', phase: 'adult', name: null, named_by: '', img: 'sweet_adult_fins_lazy', hatched: '24.09 21:15', done: '28.09 22:50', carers: [] }] };
   }
