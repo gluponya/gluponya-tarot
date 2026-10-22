@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Команды чата · gluponya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Rubik:wght@600;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6EBD3; --sheet:#FFF8EC; --ink:#1B1418; --soft:#6E5A60; --line:#E2D2B4;
+  --coral:#E8553F; --orange:#F29A3A; --yellow:#F7D44C; --mint:#6CC08B; --blue:#4F86C6; --pink:#F49CB9; --plum:#6B3FA0;
+  --display:"Rubik","Arial Black",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1D1420; --sheet:#2A1E2E; --ink:#F6EBD3; --soft:#C7B4BE; --line:#43314A; color-scheme:dark}
+html,body{background:var(--paper);color:var(--ink)}
+body{margin:0;font:700 16px/1.45 var(--body);
+  background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) .9px,transparent 1.2px);background-size:7px 7px}
+.wrap{max-width:1000px;margin:0 auto;padding-block:22px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:26px}
+a{color:var(--ink)}
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:900 14px/1 var(--display);text-transform:uppercase;letter-spacing:.05em}
+.top a{text-decoration:none;padding:9px 12px;border:2.5px solid var(--ink);border-radius:999px;background:var(--sheet)}
+.nm{margin:0;font:900 clamp(34px,7vw,64px)/1 var(--display);overflow-wrap:anywhere;-webkit-text-stroke:clamp(4px,.8vw,7px) #1B1418;paint-order:stroke fill;color:var(--yellow)}
+.lead{margin:10px 0 0;color:var(--soft);max-width:640px}
+.find{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.find input{flex:1 1 260px;min-width:0;font:800 16px/1 var(--body);color:var(--ink);background:var(--sheet);border:3px solid var(--ink);border-radius:14px;padding:12px 14px}
+.find input:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
+.jump{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:800 14px/1 var(--body);padding:8px 12px;border-radius:999px;background:var(--sheet);border:2px solid var(--ink);text-decoration:none}
+h2{margin:0;font:900 24px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
+.sec{display:grid;gap:12px;scroll-margin-top:12px}
+.list{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:minmax(150px,auto) 1fr;gap:4px 14px;align-items:start;background:var(--sheet);border:2.5px solid var(--ink);border-radius:16px;padding:12px 14px}
+.cmd{justify-self:start;font:900 16px/1.1 var(--display);background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:10px;padding:7px 10px;cursor:pointer;white-space:nowrap}
+.cmd:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
+.cmd.ok{background:var(--mint)}
+.d{min-width:0;overflow-wrap:anywhere}
+.al{display:block;color:var(--soft);font-size:14px;margin-top:3px}
+.who{display:inline-block;margin-left:6px;font:800 12px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;padding:4px 7px;border-radius:999px;background:var(--plum);color:#FFF8EC;vertical-align:2px}
+.who.vip{background:var(--pink);color:#1B1418}
+.rw{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.r{background:var(--sheet);border:2.5px solid var(--ink);border-radius:16px;padding:12px 14px;display:grid;gap:6px}
+.r b{font:900 15px/1.15 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
+.r i{font-style:normal;font:900 13px/1 var(--display);justify-self:start;padding:5px 8px;border-radius:999px;background:var(--plum);color:#FFF8EC}
+.r span{color:var(--soft);font-size:14px;line-height:1.3}
+.empty{color:var(--soft);margin:0}
+footer{color:var(--soft);font-size:14px}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <nav class="top"><a id="toAlbum" href="/tarot">← Колода gluponya</a><a href="https://twitch.tv/gluponya" rel="noopener">twitch.tv/gluponya</a></nav>
+  <header>
+    <h1 class="nm">Команды чата</h1>
+    <p class="lead">Пиши их в чат на стриме twitch.tv/gluponya. Нажми на команду, чтобы скопировать</p>
+  </header>
+  <p class="empty" id="msg">Загружаю команды…</p>
+</div>
+<script>
+(() => {
+  const GH = {"owner": "gluponya", "repo": "gluponya-tarot"};                                  // на GitHub сюда подставляется {owner, repo}
+  const app = document.getElementById('app');
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const low = s => String(s || '').toLowerCase();
+  document.getElementById('toAlbum').href = GH ? './' : '/tarot';
+  function load() {
+    if (!GH) return fetch('/hub/commands/state', { cache: 'no-store' }).then(r => r.json());
+    const api = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/commands.json?ref=data`;
+    const raw = `https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/data/commands.json?t=` + Date.now();
+    const get = (u, h) => fetch(u, { cache: 'no-store', headers: h || {} }).then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
+    return get(api, { Accept: 'application/vnd.github.raw+json' }).catch(() => get(raw));
+  }
+  function copy(btn, text) {
+    const done = () => { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 900); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => {}); else done();
+  }
+  function render(D) {
+    document.getElementById('msg').remove();
+    const secs = (D.sections || []).filter(s => (s.items || []).length);
+    // поиск и быстрые ссылки по разделам
+    const find = el('div', 'find'), inp = el('input');
+    inp.type = 'search'; inp.placeholder = 'Найти команду: кот, баллы, трек…'; inp.setAttribute('aria-label', 'Найти команду');
+    find.appendChild(inp); app.appendChild(find);
+    const jump = el('nav', 'jump');
+    secs.forEach(s => { const a = el('a', 'chip', `${s.emoji} ${s.title}`); a.href = '#' + s.key; jump.appendChild(a); });
+    if ((D.rewards || []).length) { const a = el('a', 'chip', '🎁 Награды за баллы'); a.href = '#rewards'; jump.appendChild(a); }
+    app.appendChild(jump);
+    const rows = [];
+    secs.forEach(s => {
+      const sec = el('section', 'sec'); sec.id = s.key;
+      sec.appendChild(el('h2', null, `${s.emoji} ${s.title}`));
+      const list = el('div', 'list');
+      s.items.forEach(it => {
+        const r = el('div', 'row'), b = el('button', 'cmd', it.cmd), d = el('div', 'd', it.desc);
+        b.type = 'button'; b.title = 'Скопировать'; b.addEventListener('click', () => copy(b, it.cmd));
+        if (it.who && it.who !== 'все') d.appendChild(el('span', 'who' + (it.who === 'VIP' ? ' vip' : ''), it.who));
+        if ((it.aliases || []).length) d.appendChild(el('span', 'al', 'или ' + it.aliases.join(' ')));
+        r.append(b, d); list.appendChild(r);
+        rows.push([r, low([it.cmd, it.desc, s.title].concat(it.aliases || []).join(' ')), sec]);
+      });
+      sec.appendChild(list); app.appendChild(sec);
+    });
+    if ((D.rewards || []).length) {
+      const sec = el('section', 'sec'); sec.id = 'rewards';
+      sec.appendChild(el('h2', null, '🎁 Награды за баллы'));
+      sec.appendChild(el('p', 'empty', 'Баллы канала копятся сами, пока смотришь стрим. Награды — в окошке баллов под чатом'));
+      const g = el('div', 'rw');
+      D.rewards.forEach(x => {
+        const c = el('div', 'r'); c.append(el('b', null, x.title), el('i', null, `${x.cost} баллов`), el('span', null, x.what || ''));
+        g.appendChild(c); rows.push([c, low(x.title + ' ' + x.what + ' баллы награды'), sec]);
+      });
+      sec.appendChild(g); app.appendChild(sec);
+    }
+    const none = el('p', 'empty', 'Такой команды нет. Попробуй другое слово'); none.hidden = true; app.appendChild(none);
+    inp.addEventListener('input', () => {
+      const q = low(inp.value).trim().replace(/^!/, '');
+      const shown = new Set();
+      rows.forEach(([r, hay, sec]) => { const on = !q || hay.includes(q); r.hidden = !on; if (on) shown.add(sec); });
+      rows.forEach(([, , sec]) => { sec.hidden = !shown.has(sec); });
+      jump.hidden = !!q; none.hidden = shown.size > 0;
+    });
+    app.appendChild(el('footer', null, `Отвечает ${D.bot || 'Глупобот'} и станция Они. Тут только то, что сейчас включено на стриме`));
+  }
+  load().then(render).catch(() => { document.getElementById('msg').textContent = 'Команды не загрузились. Обнови страницу через минутку'; });
+})();
+</script>
+</body>
+</html>
