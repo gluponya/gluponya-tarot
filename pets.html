@@ -42,6 +42,8 @@ h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spa
 .now .pic.egg:active{cursor:grabbing}
 .now .pic.egg .spin{width:100%;height:100%;will-change:transform}
 .now .pic.egg img{pointer-events:none;-webkit-user-drag:none}
+.now .pic.egg canvas{width:100%;height:100%;display:block;animation:bob 4.2s ease-in-out infinite;transform-origin:50% 88%}
+@media (prefers-reduced-motion:reduce){.now .pic.egg canvas{animation:none}}
 .now .info{display:grid;gap:10px;min-width:0}
 .tag{display:inline-flex;align-items:center;gap:8px;font:900 13px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--soft);justify-self:start}
 .tag b{font-size:14px;letter-spacing:.06em;background:var(--yellow);color:#1B1418;border:2.5px solid #1B1418;border-radius:999px;padding:6px 11px;font-variant-numeric:tabular-nums}
@@ -162,18 +164,101 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
     return 'Растили: ' + c.map(([who, k]) => `${nick(who)} ×${k}`).join(', ');
   }
 
-  // яйцо крутится мышкой/пальцем, как карты таро: бросок с инерцией, потом мягко встаёт лицом (кратно 180°)
+  // 3D-яйцо: форма по силуэту картинки (тело вращения), спереди сама картинка, сзади гранёная скорлупа её цвета
+  const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+  async function egg3d(img, box) {
+    const THREE = await import(THREE_URL);
+    if (!img.complete || !img.naturalWidth) await new Promise((ok, no) => { img.onload = ok; img.onerror = no; });
+    const N = img.naturalWidth, M = img.naturalHeight;
+    const cv = document.createElement('canvas'); cv.width = N; cv.height = M;
+    const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0);
+    const px = cx.getImageData(0, 0, N, M).data;
+    const L = [], R = []; let top = -1, bot = -1;
+    for (let y = 0; y < M; y++) {
+      let l = -1, r = -1;
+      for (let x = 0; x < N; x++) if (px[(y * N + x) * 4 + 3] > 128) { if (l < 0) l = x; r = x; }
+      L.push(l); R.push(r); if (l >= 0) { if (top < 0) top = y; bot = y; }
+    }
+    if (top < 0 || bot - top < 20) return null;
+    let ax = 0, k = 0, sh = [[], [], []];
+    for (let y = top; y <= bot; y++) {
+      if (L[y] < 0) continue; ax += (L[y] + R[y]) / 2; k++;
+      for (let x = L[y]; x <= R[y]; x += 3) {                         // цвет скорлупы: медиана неярких пикселей
+        const i = (y * N + x) * 4, c = [px[i], px[i + 1], px[i + 2]];
+        if (px[i + 3] > 250 && Math.max(...c) - Math.min(...c) < 60) c.forEach((v, j) => sh[j].push(v));
+      }
+    }
+    ax /= k;
+    const cy = (top + bot) / 2, H = bot - top;
+    const rAt = y => { const row = Math.round(cy - y); return row < 0 || row >= M || L[row] < 0 ? 0 : (R[row] - L[row] + 1) / 2; };
+    const med = a => { a.sort((p, q) => p - q); return (a[Math.floor(a.length * .65)] || 230) / 255; };
+    // гранёная сфера, натянутая на силуэт: неровные грани, как у нарисованного яйца
+    const geo = new THREE.IcosahedronGeometry(1, 2), pos = geo.attributes.position, v = new THREE.Vector3();
+    geo.rotateZ(Math.atan(2 / (1 + Math.sqrt(5))));                     // вершина икосаэдра ровно на макушку
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).normalize();
+      const y = v.y * H / 2, ring = Math.sqrt(Math.max(1 - v.y * v.y, 0));
+      const j = 1 + .03 * Math.sin(v.x * 91.7 + v.y * 47.3 + v.z * 73.1);   // одинаковый сдвиг у общих вершин
+      const k = ring > 1e-4 ? rAt(y) * j / ring : 0;
+      pos.setXYZ(i, v.x * k, y, v.z * k);
+    }
+    geo.computeVertexNormals();
+    const tex = new THREE.CanvasTexture(cv);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { map: { value: tex }, shell: { value: new THREE.Vector3(med(sh[0]), med(sh[1]), med(sh[2])) },
+                  off: { value: new THREE.Vector2(ax / N, 1 - cy / M) }, sc: { value: new THREE.Vector2(1 / N, 1 / M) } },
+      // свет общий на всё яйцо; с картинки берутся только рисунки (глаза, щёчки, звёзды, трещины), а не её нарисованные тени
+      vertexShader: `varying vec3 vP; varying vec3 vN;
+        void main(){ vP = position; vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
+      fragmentShader: `uniform sampler2D map; uniform vec3 shell; uniform vec2 off; uniform vec2 sc;
+        varying vec3 vP; varying vec3 vN;
+        const vec3 LI = vec3(-.45, .6, .65);
+        void main(){
+          vec3 n = normalize(vN);
+          float lit = .7 + .38 * max(dot(n, normalize(LI)), 0.) + .06 * n.y;
+          vec4 t = texture2D(map, off + vP.xy * sc);
+          float front = smoothstep(.2, .55, vP.z / max(length(vP.xz), 1e-3)) * smoothstep(.5, .95, t.a);
+          float mx = max(max(t.r, t.g), max(t.b, 1e-3));
+          float hue = length(t.rgb / mx - shell / max(max(shell.r, shell.g), shell.b));
+          float deco = max(smoothstep(.08, .2, hue), smoothstep(.5, .3, dot(t.rgb, vec3(.3, .59, .11)))) * front;
+          gl_FragColor = vec4(mix(shell * lit, t.rgb * clamp(lit, .7, 1.1), deco), 1.);
+        }`
+    });
+    const mesh = new THREE.Mesh(geo, mat); mesh.position.set(ax - N / 2, M / 2 - cy, 0);
+    const scene = new THREE.Scene(); scene.add(mesh);
+    const cam = new THREE.OrthographicCamera(-N / 2, N / 2, M / 2, -M / 2, -2000, 2000); cam.position.z = 1000;
+    const ren = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    ren.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); ren.setClearColor(0, 0);
+    let rx = 0, ry = 0;
+    const draw = (x, y) => { rx = x; ry = y; mesh.rotation.set(rx * Math.PI / 180, ry * Math.PI / 180, 0); ren.render(scene, cam); };
+    const fit = () => { const s = box.clientWidth || 300; ren.setSize(s, s * M / N, false); draw(rx, ry); };
+    const ro = new ResizeObserver(fit); ro.observe(box); fit();
+    return { canvas: ren.domElement, draw,
+             dispose: () => { ro.disconnect(); geo.dispose(); mat.dispose(); tex.dispose(); ren.dispose(); ren.forceContextLoss(); } };
+  }
+
+  // яйцо крутится мышкой/пальцем, как карты таро: бросок с инерцией, потом мягко встаёт лицом.
+  // Пока three.js не загрузился (или не загрузится), крутится плоская картинка
+  let EGG = null;                                       // прошлое 3D-яйцо: при перерисовке освободить WebGL
   function spinEgg(pic) {
+    if (EGG) { EGG(); EGG = null; }
     const w = pic && pic.querySelector('.spin');
     if (!w || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-    let ry = 0, rx = 0, vy = 0, vx = 0, drag = null, raf = 0;
+    let ry = 0, rx = 0, vy = 0, vx = 0, drag = null, raf = 0, turn = 180;
+    let paint = () => { w.style.transform = rx || ry ? `rotateX(${rx}deg) rotateY(${ry}deg)` : ''; };
+    egg3d(w.querySelector('img'), w).then(r => {
+      if (!r) return;
+      if (!pic.isConnected) return r.dispose();
+      w.style.transform = ''; w.replaceChildren(r.canvas); r.canvas.setAttribute('role', 'img'); r.canvas.setAttribute('aria-label', 'Яйцо');
+      turn = 360; ry = Math.round(ry / 360) * 360; paint = () => r.draw(rx, ry); paint(); EGG = r.dispose;
+    }).catch(() => {});
     const step = () => {
       if (!drag) {
         if (Math.abs(vy) > .15 || Math.abs(vx) > .15) { ry += vy; rx = Math.max(-30, Math.min(30, rx + vx)); vy *= .95; vx *= .9; }
-        else { vy = vx = 0; const d = Math.round(ry / 180) * 180 - ry; ry += d * .1; rx *= .88;
-          if (Math.abs(d) < .2 && Math.abs(rx) < .2) { ry = 0; rx = 0; w.style.transform = ''; raf = 0; return; } }
+        else { vy = vx = 0; const d = Math.round(ry / turn) * turn - ry; ry += d * .1; rx *= .88;
+          if (Math.abs(d) < .2 && Math.abs(rx) < .2) { ry = 0; rx = 0; paint(); raf = 0; return; } }
       }
-      w.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      paint();
       raf = requestAnimationFrame(step);
     };
     const go = () => { if (!raf) raf = requestAnimationFrame(step); };
