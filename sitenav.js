@@ -17,23 +17,23 @@
   ];
   const st = document.createElement('style');
   st.textContent = `
-.sn{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.sn{display:flex}
 .sn ul{list-style:none;margin:0;padding:4px;display:flex;flex-wrap:wrap;gap:4px;background:var(--sheet);border:2.5px solid var(--ink);border-radius:26px}
-.sn a{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:22px;text-decoration:none;color:var(--ink);
+.sn li{display:flex}
+.sn a{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:22px;text-decoration:none;color:var(--ink);
   font:900 14px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .sn a:hover{background:color-mix(in srgb,var(--ink) 9%,transparent)}
 .sn a[aria-current="page"]{background:var(--ink);color:var(--paper)}
 .sn a:focus-visible{outline:3px solid var(--focus,var(--ink));outline-offset:2px}
 .sn i{font-style:normal;font-size:17px;line-height:1}
-.sn .tw{margin-left:auto;border:2.5px solid var(--ink);background:var(--sheet);text-transform:none;letter-spacing:0;font:800 14px/1.1 var(--body)}
-@media (max-width:640px){
+@media (max-width:760px){
   .sn ul{width:100%;box-sizing:border-box;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-radius:20px}
   .sn a{flex-direction:column;justify-content:center;gap:3px;min-height:56px;padding:6px 2px;border-radius:15px;
     font:800 12px/1.1 var(--body);text-transform:none;letter-spacing:0;overflow:hidden;text-overflow:ellipsis}
   .sn i{font-size:21px}
-  .sn .tw{display:none}
 }
-@media (forced-colors:active){.sn ul,.sn .tw{border-color:CanvasText}.sn a[aria-current="page"]{outline:3px solid CanvasText}}`;
+@media (max-width:380px){.sn ul{gap:2px;padding:3px}.sn a{padding:6px 0;font-size:11px;letter-spacing:-.01em}}
+@media (forced-colors:active){.sn ul{border-color:CanvasText}.sn a[aria-current="page"]{outline:3px solid CanvasText}}`;
   document.head.appendChild(st);
   nav.setAttribute('aria-label', 'Страницы gluponya');
   const ul = document.createElement('ul');
@@ -45,7 +45,5 @@
     if (key === nav.dataset.page) a.setAttribute('aria-current', 'page');
     li.appendChild(a); ul.appendChild(li);
   }
-  const tw = document.createElement('a');
-  tw.className = 'tw'; tw.href = 'https://twitch.tv/gluponya'; tw.rel = 'noopener'; tw.textContent = 'twitch.tv/gluponya ↗';
-  nav.replaceChildren(ul, tw);
+  nav.replaceChildren(ul);
 })();
