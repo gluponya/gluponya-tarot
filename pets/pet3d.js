@@ -20,7 +20,7 @@ function three() {                  // +esm: загрузчик берёт то�
 
 // сам по себе: чаще стоит, иногда ходит, сидит или дремлет; сколько секунд держит состояние
 const WANDER = [['idle', 0.45, 6, 12], ['walk', 0.2, 3, 5], ['sit', 0.25, 7, 14], ['sleep', 0.1, 8, 15]];
-const FADE = 0.3;
+const FADE = 0.7;                  // смена состояния: встать, сесть, лечь — не рывком
 
 export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
   const { THREE, GLTFLoader, RoomEnvironment } = await three();
@@ -69,7 +69,18 @@ export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
       if (o.material.transparent)
         o.renderOrder = /_(eyes|mouth)$/.test(o.name) ? 3 : /eye_shadow|cheek|bib|belly/.test(o.name + m.name) ? 1 : 0;
     });
+    gltf.animations.forEach(seamless);
     return gltf;
+  }
+  // экспорт пишет первый кадр цикла ещё в исходной стойке (сидящий раз в цикл вскакивал) и начинает с 1/12 с
+  // (лишний кадр стоянки). Цикл замкнут: начало = концу. Ставим в начало последний кадр и сдвигаем время к нулю
+  function seamless(clip) {
+    for (const tr of clip.tracks) {
+      const t = tr.times, v = tr.values, n = tr.getValueSize(), t0 = t[0];
+      v.copyWithin(0, v.length - n);
+      for (let i = 0; i < t.length; i++) t[i] -= t0;
+    }
+    clip.resetDuration();
   }
   // не загрузилось — забываем, следующий show попробует снова
   const model = (family, stage) => models[family + '_' + stage] ||= loader.loadAsync(`${base}${family}_${stage}.glb`)
