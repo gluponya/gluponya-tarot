@@ -131,7 +131,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const FAM = { sweet: ['зефирка', '🍬', 'сладкое'], spicy: ['дракончик', '🌶️', 'острое'], fish: ['аксолотль', '🐟', 'рыбка'], green: ['росток', '🥬', 'зелень'] };
   const PART = { sprinkles: 'посыпка с глазурью 🍬', flame: 'хохолок-огонёк 🌶️', fins: 'ушки-плавнички 🐟', sprout: 'росток 🥬' };
-  const CHAR = { normal: 'обычный', happy: 'весёлый', lazy: 'ленивый', grumpy: 'вредный' };
+  const CHAR = { normal: 'обычный', happy: 'весёлый', lazy: 'ленивый', grumpy: 'вредный', sad: 'грустный' };
   const STAGE = { baby: 'малыш', child: 'ребёнок', teen: 'подросток', adult: 'взрослый' };
   const color = f => `var(--${FAM[f] ? f : 'yellow'})`;
   // ники — ссылки на профиль зрителя, но только у кого профиль есть и не скрыт (иначе ведём на «такого профиля нет»)
@@ -240,7 +240,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
   // живой 3D-питомец (static/tama/pet3d.js, как в оверлее): сам стоит, ходит, сидит, дремлет; повернуть — turn
   async function pet3d(p, box) {
     const { createPet } = await import(GH ? './pets/pet3d.js' : '/static/tama/pet3d.js');
-    const pet = await createPet(box, { base: GH ? 'pets/3d/' : '/static/tama/3d/' });
+    const pet = await createPet(box, { base: GH ? 'pets/3d/' : '/static/tama/3d/', fps: 60 });   // крутят мышкой — плавно
     const [, stage, part] = (p.img || '').split('_');
     const parts = p.parts || (part && part !== 'pure' ? [part.split('-')[0]] : []);   // как на картинке
     try { await pet.show({ family: p.family, stage: p.phase || stage, parts, character: p.char || 'normal' }); }
