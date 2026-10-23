@@ -7,25 +7,33 @@
 //   pet.loop('sleep');   // одно состояние по кругу; pet.loop(null) — снова сам по себе
 //   pet.pause(true);     // не рисовать, пока питомца не видно
 //   pet.turn(rx, ry);    // повернуть, градусы (страница питомцев крутит его мышкой, как яйцо)
+//   pet.rate(2);         // анимации вдвое быстрее; pet.length('eat') — длительность движения
+// Ещё в createPet: scale — во сколько раз коробку уменьшили через CSS (оверлей на прогулке: 0.657), рисуем сразу
+// в этом размере, а не крупнее; fps — сколько кадров в секунду рисовать (анимации сняты на 12, хватает 30).
 // three.js не загрузился или модели нет — createPet / show бросают ошибку, страница остаётся на картинках.
+// three.js 0.169.0 лежит рядом (lib/: модуль, загрузчики, декодер Draco — модели сжаты им в stream_export.py),
+// чтобы питомец не зависел от интернета на стриме; не нашёлся — тот же three с CDN.
+const LIB = new URL('./lib/', import.meta.url).href;
 const CDN = 'https://cdn.jsdelivr.net/npm/three@0.169.0/';
 let lib = null;
-function three() {                  // +esm: загрузчик берёт тот же модуль three, importmap на странице не нужен
-  return lib ||= Promise.all([
-    import(CDN + '+esm'),
-    import(CDN + 'examples/jsm/loaders/GLTFLoader.js/+esm'),
-    import(CDN + 'examples/jsm/environments/RoomEnvironment.js/+esm'),
-  ]).then(([THREE, { GLTFLoader }, { RoomEnvironment }]) => ({ THREE, GLTFLoader, RoomEnvironment }));
+function load(local) {             // +esm на CDN: загрузчики берут тот же модуль three, importmap на странице не нужен
+  const at = local ? ['three.module.min.js', 'GLTFLoader.js', 'DRACOLoader.js', 'RoomEnvironment.js'].map(n => LIB + n)
+    : [CDN + '+esm', ...['loaders/GLTFLoader', 'loaders/DRACOLoader', 'environments/RoomEnvironment'].map(p => `${CDN}examples/jsm/${p}.js/+esm`)];
+  return Promise.all(at.map(u => import(u))).then(([THREE, { GLTFLoader }, { DRACOLoader }, { RoomEnvironment }]) =>
+    ({ THREE, GLTFLoader, DRACOLoader, RoomEnvironment, draco: local ? LIB + 'draco/' : CDN + 'examples/jsm/libs/draco/gltf/' }));
+}
+function three() {
+  return lib ||= load(true).catch(() => load(false));
 }
 
 // сам по себе: чаще стоит, иногда ходит, сидит или дремлет; сколько секунд держит состояние
 const WANDER = [['idle', 0.45, 6, 12], ['walk', 0.2, 3, 5], ['sit', 0.25, 7, 14], ['sleep', 0.1, 8, 15]];
 const FADE = 0.7;                  // смена состояния: встать, сесть, лечь — не рывком
 
-export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
-  const { THREE, GLTFLoader, RoomEnvironment } = await three();
+export async function createPet(box, { base = '/static/tama/3d/', scale = 1, fps = 30 } = {}) {
+  const { THREE, GLTFLoader, DRACOLoader, RoomEnvironment, draco } = await three();
   const ren = new THREE.WebGLRenderer({ antialias: true, alpha: true, premultipliedAlpha: false });
-  ren.setPixelRatio(Math.min(devicePixelRatio, 2));
+  ren.setPixelRatio(Math.min(devicePixelRatio, 2) * Math.min(Math.max(scale, 0.25), 1));
   ren.outputColorSpace = THREE.SRGBColorSpace;
   ren.toneMapping = THREE.NeutralToneMapping;
   ren.setClearColor(0x000000, 0);
@@ -41,7 +49,7 @@ export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
   const AZ = THREE.MathUtils.degToRad(18), EL = THREE.MathUtils.degToRad(10);
   const view = new THREE.Vector3(Math.sin(AZ) * Math.cos(EL), Math.sin(EL), Math.cos(AZ) * Math.cos(EL));
   cam.position.copy(view).multiplyScalar(10); cam.lookAt(0, 0, 0); cam.updateMatrixWorld();
-  const loader = new GLTFLoader(), texLoader = new THREE.TextureLoader();
+  const loader = new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath(draco)), texLoader = new THREE.TextureLoader();
   const timeline = await (await fetch(base + 'anim.json')).json();
   const models = {}, eyeTex = {};
   // мягкая тень под лапами, как в рендерах: круг с размытым краем на земле
@@ -95,7 +103,7 @@ export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
     }));
   }
 
-  let cur = null, mixer = null, eyeMesh = null, action = null, state = null, fixed = null, until = 0, after = null;
+  let cur = null, mixer = null, eyeMesh = null, action = null, state = null, fixed = null, until = 0, after = null, speed = 1;
   let asked = 0, paused = false, rot = [0, 0];    // asked: номер последнего show — устаревший, догрузившись позже, ничего не меняет
   const clock = new THREE.Clock();
 
@@ -139,8 +147,11 @@ export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
     if (action) action.crossFadeTo(next, FADE, false);
     action = next; state = name;
   }
+  let table = WANDER, moodEyes = null;   // настроение (tama.html): своё «само по себе» и глаза вместо характера
   function wander() {               // следующее «само по себе» состояние, не то же самое подряд
-    const pool = WANDER.filter(w => w[0] !== state || WANDER.length === 1);
+    const have = table.filter(w => cur.animations.some(a => a.name === w[0]));
+    const all = have.length ? have : WANDER;
+    const pool = all.filter(w => w[0] !== state || all.length === 1);
     let r = Math.random() * pool.reduce((a, w) => a + w[1], 0), w = pool[0];
     for (const x of pool) { if ((r -= x[1]) <= 0) { w = x; break; } }
     play(w[0]);
@@ -157,7 +168,7 @@ export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
       if (cur !== gltf) {
         if (cur) scene.remove(cur.scene);
         cur = gltf; scene.add(gltf.scene);
-        mixer = new THREE.AnimationMixer(gltf.scene); action = null; state = null;
+        mixer = new THREE.AnimationMixer(gltf.scene); mixer.timeScale = speed; action = null; state = null;
         eyeMesh = null;
         gltf.scene.traverse(o => { if (o.isMesh && /_eyes$/.test(o.name) && o.material.map) eyeMesh = o; });
       }
@@ -189,15 +200,29 @@ export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
       if (cur) cur.scene.rotation.set(THREE.MathUtils.degToRad(rx) * 0.5, THREE.MathUtils.degToRad(ry), 0);
     },
     loop(name) { fixed = name; if (!cur) return; if (name) play(name); else wander(); },
+    // настроение: wander — [[движение, вес, секунд от, до], ...] вместо обычного, eyes — глаза вместо характера (null — свои)
+    mood({ wander: w = null, eyes = null } = {}) {
+      const next = w || WANDER, changed = next !== table && JSON.stringify(next) !== JSON.stringify(table);
+      if (changed) table = next;
+      moodEyes = eyes;
+      if (changed && cur && !fixed && !after) wander();
+    },
     states: () => cur ? cur.animations.map(a => a.name) : [],
+    length(name) {                  // длительность движения, секунды (0 — такого нет)
+      const clip = cur && cur.animations.find(a => a.name === name); return clip ? clip.duration : 0;
+    },
+    rate(k) { speed = k; if (mixer) mixer.timeScale = k; },   // быстрее/медленнее: прогулка домой к сценке
     destroy() { ren.setAnimationLoop(null); ren.dispose(); ren.domElement.remove(); },
   };
 
   function fit() { ren.setSize(box.clientWidth, box.clientHeight, false); lens(); }
   new ResizeObserver(fit).observe(box); fit();
+  let wait = 0;                     // копим время до следующего кадра: рисуем не чаще fps раз в секунду
   ren.setAnimationLoop(() => {
-    const dt = Math.min(clock.getDelta(), 0.1);
-    if (!mixer || !action || paused) return;
+    wait += clock.getDelta();
+    if (!mixer || !action || paused) { wait = 0; return; }
+    if (wait < 1 / fps - 0.004) return;
+    const dt = Math.min(wait, 0.1); wait = 0;
     mixer.update(dt);
     if (clock.elapsedTime >= until && (after || !fixed)) {
       after = null;
@@ -205,7 +230,7 @@ export async function createPet(box, { base = '/static/tama/3d/' } = {}) {
     }
     if (eyeMesh) {                  // глаза кадра, на котором сейчас анимация
       const tl = timeline[state], f = Math.floor(action.time * tl.fps) % tl.frames;
-      const want = api.family + '_' + (tl.eyes[f] === 'char' ? api.character : tl.eyes[f]);
+      const want = api.family + '_' + (tl.eyes[f] === 'char' ? moodEyes || api.character : tl.eyes[f]);
       if (eyeMesh.userData.now !== want && eyeTex[want]) {
         eyeMesh.material.map = eyeTex[want]; eyeMesh.material.needsUpdate = true; eyeMesh.userData.now = want;
       }
