@@ -38,10 +38,10 @@ h2{margin:0;font:900 22px/1.1 var(--display);text-transform:uppercase;letter-spa
 .now .pic{aspect-ratio:1;border-radius:18px;background:radial-gradient(circle closest-side at 50% 56%,color-mix(in srgb,var(--c,var(--yellow)) 55%,transparent),transparent)}
 .now .pic img{width:100%;height:100%;object-fit:contain;display:block;animation:bob 4.2s ease-in-out infinite;transform-origin:50% 88%}
 @keyframes bob{50%{transform:rotate(1.6deg) translateY(-4px)}0%,100%{transform:rotate(-1.6deg)}}
-.now .pic.egg{perspective:900px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
-.now .pic.egg:active{cursor:grabbing}
-.now .pic.egg .spin{width:100%;height:100%;will-change:transform}
-.now .pic.egg img{pointer-events:none;-webkit-user-drag:none}
+.now .pic.egg,.now .pic.turn{perspective:900px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.now .pic.egg:active,.now .pic.turn:active{cursor:grabbing}
+.now .pic.egg .spin,.now .pic.turn .spin{position:relative;width:100%;height:100%;will-change:transform}
+.now .pic.egg img,.now .pic.turn img{pointer-events:none;-webkit-user-drag:none}
 .now .pic.egg canvas{width:100%;height:100%;display:block;animation:bob 4.2s ease-in-out infinite;transform-origin:50% 88%}
 @media (prefers-reduced-motion:reduce){.now .pic.egg canvas{animation:none}}
 .now .info{display:grid;gap:10px;min-width:0}
@@ -237,19 +237,30 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
              dispose: () => { ro.disconnect(); geo.dispose(); mat.dispose(); tex.dispose(); ren.dispose(); ren.forceContextLoss(); } };
   }
 
-  // яйцо крутится мышкой/пальцем, как карты таро: бросок с инерцией, потом мягко встаёт лицом.
+  // живой 3D-питомец (static/tama/pet3d.js, как в оверлее): сам стоит, ходит, сидит, дремлет; повернуть — turn
+  async function pet3d(p, box) {
+    const { createPet } = await import(GH ? './pets/pet3d.js' : '/static/tama/pet3d.js');
+    const pet = await createPet(box, { base: GH ? 'pets/3d/' : '/static/tama/3d/' });
+    const [, stage, part] = (p.img || '').split('_');
+    const parts = p.parts || (part && part !== 'pure' ? [part.split('-')[0]] : []);   // как на картинке
+    try { await pet.show({ family: p.family, stage: p.phase || stage, parts, character: p.char || 'normal' }); }
+    catch (e) { pet.destroy(); throw e; }
+    return { canvas: pet.canvas, draw: (rx, ry) => pet.turn(rx, ry), dispose: () => pet.destroy() };
+  }
+
+  // яйцо и питомец крутятся мышкой/пальцем, как карты таро: бросок с инерцией, потом мягко встают лицом.
   // Пока three.js не загрузился (или не загрузится), крутится плоская картинка
-  let EGG = null;                                       // прошлое 3D-яйцо: при перерисовке освободить WebGL
-  function spinEgg(pic) {
+  let EGG = null;                                       // прошлое 3D-яйцо/питомец: при перерисовке освободить WebGL
+  function spinEgg(pic, make = w => egg3d(w.querySelector('img'), w), label = 'Яйцо') {
     if (EGG) { EGG(); EGG = null; }
     const w = pic && pic.querySelector('.spin');
     if (!w || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
     let ry = 0, rx = 0, vy = 0, vx = 0, drag = null, raf = 0, turn = 180;
     let paint = () => { w.style.transform = rx || ry ? `rotateX(${rx}deg) rotateY(${ry}deg)` : ''; };
-    egg3d(w.querySelector('img'), w).then(r => {
+    make(w).then(r => {
       if (!r) return;
       if (!pic.isConnected) return r.dispose();
-      w.style.transform = ''; w.replaceChildren(r.canvas); r.canvas.setAttribute('role', 'img'); r.canvas.setAttribute('aria-label', 'Яйцо');
+      w.style.transform = ''; w.replaceChildren(r.canvas); r.canvas.setAttribute('role', 'img'); r.canvas.setAttribute('aria-label', label);
       turn = 360; ry = Math.round(ry / 360) * 360; paint = () => r.draw(rx, ry); paint(); EGG = r.dispose;
     }).catch(() => {});
     const step = () => {
@@ -294,13 +305,15 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
     } else if (nv && nv.st === 'poll') {
       naming = `<div class="naming">🗳 Голосуем за имя в опросе над чатом на Twitch!</div>`;
     }
-    box.innerHTML = `<div class="now" style="--c:${color(p.family)}"><div class="pic"><img src="${IMG(p.img)}" alt="${esc(p.name || f[0])}"></div>
+    box.innerHTML = `<div class="now" style="--c:${color(p.family)}"><div class="pic turn"><div class="spin"><img src="${IMG(p.img)}" alt="${esc(p.name || f[0])}" draggable="false"></div></div>
       <div class="info"><div class="tag"><b>№${p.gen}</b>Сейчас растёт${p.hatched ? ' · вылупился ' + esc(p.hatched) : ''}</div>
       ${p.name ? `<p class="nm">${esc(p.name)}</p>` : `<p class="nm none">${esc(f[0])} пока без имени</p>`}
       <div class="facts">${facts(p)}</div>
       ${p.name && p.named_by ? `<div class="carers">Автор имени: ${nick(p.named_by)}</div>` : ''}
       ${naming}
-      <div class="carers">${carers(p, 5)}</div></div></div>`;
+      <div class="carers">${carers(p, 5)}</div>
+      ${OBS ? '' : '<div class="carers">Питомца можно покрутить мышкой или пальцем.</div>'}</div></div>`;
+    spinEgg(box.querySelector('.turn'), w => pet3d(p, w), p.name || f[0]);
   }
 
   function drawGrid(D) {
