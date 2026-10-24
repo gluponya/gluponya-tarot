@@ -8,6 +8,7 @@
 //   pet.pause(true);     // не рисовать, пока питомца не видно
 //   pet.turn(rx, ry);    // повернуть, градусы (страница питомцев крутит его мышкой, как яйцо)
 //   pet.rate(2);         // анимации вдвое быстрее; pet.length('eat') — длительность движения
+//   pet.dirt(0.6);       // грязь: пятна на теле, 0 — чистый, 1 — весь в грязи; меняется плавно
 // Ещё в createPet: scale — во сколько раз коробку уменьшили через CSS (оверлей на прогулке: 0.657), рисуем сразу
 // в этом размере, а не крупнее; fps — сколько кадров в секунду рисовать (анимации сняты на 12, хватает 30).
 // three.js не загрузился или модели нет — createPet / show бросают ошибку, страница остаётся на картинках.
@@ -64,9 +65,40 @@ export async function createPet(box, { base = '/static/tama/3d/', scale = 1, fps
     return new THREE.CanvasTexture(c);
   }
 
-  function prepare(gltf) {          // один раз на модель: свечение, порядок слоёв лица, отражения глянца
+  // грязь: пятна по коже (голова, тело, лапы, хвост), не по украшениям и глазури. Узор — шум от точки модели
+  // в покое, так что пятна едут вместе с лапами; внизу грязнее. Одна общая сила на питомца, плавно к цели
+  const DIRT = /_(head|body|arm_[LR]|leg_[LR]|tail)(\.\d+)?$/, mud = { value: 0 };
+  let mudTo = 0;
+  function dirty(m, k) {
+    m = m.clone();
+    m.onBeforeCompile = sh => {
+      sh.uniforms.uMud = mud; sh.uniforms.uK = { value: k };
+      sh.vertexShader = 'varying vec3 vMudP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMudP = position;');
+      sh.fragmentShader = `varying vec3 vMudP;
+uniform float uMud, uK;
+float mudH(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float mudN(vec3 p) {
+  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(mudH(i), mudH(i + vec3(1, 0, 0)), f.x), mix(mudH(i + vec3(0, 1, 0)), mudH(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(mudH(i + vec3(0, 0, 1)), mudH(i + vec3(1, 0, 1)), f.x), mix(mudH(i + vec3(0, 1, 1)), mudH(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+` + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+if (uMud > 0.001) {
+  vec3 q = vMudP * uK;
+  float n = 0.65 * mudN(q * 7.0) + 0.35 * mudN(q * 15.0) + 0.25 * (0.35 - q.y);
+  float t = 1.0 - 0.5 * uMud;
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.30, 0.20, 0.12), 0.85 * smoothstep(t, t + 0.05, n));
+}`);
+    };
+    m.customProgramCacheKey = () => 'mud';
+    return m;
+  }
+
+  function prepare(gltf) {          // один раз на модель: свечение, порядок слоёв лица, отражения глянца, грязь
+    const k = 1 / Math.max(1e-3, new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3()).y);   // узор в ростах питомца
     gltf.scene.traverse(o => {
       if (!o.isMesh) return;
+      if (DIRT.test(o.name) && !o.material.userData.glow && !o.material.transparent) o.material = dirty(o.material, k);
       const m = o.material;
       if (m.userData.glow) {        // светится само (extras.glow): без света, своими цветами, как emission в Cycles
         const vc = !!o.geometry.attributes.color;
@@ -212,6 +244,7 @@ export async function createPet(box, { base = '/static/tama/3d/', scale = 1, fps
       const clip = cur && cur.animations.find(a => a.name === name); return clip ? clip.duration : 0;
     },
     rate(k) { speed = k; if (mixer) mixer.timeScale = k; },   // быстрее/медленнее: прогулка домой к сценке
+    dirt(k) { mudTo = Math.min(Math.max(+k || 0, 0), 1); },
     destroy() { ren.setAnimationLoop(null); ren.dispose(); ren.domElement.remove(); },
   };
 
@@ -224,6 +257,7 @@ export async function createPet(box, { base = '/static/tama/3d/', scale = 1, fps
     if (wait < 1 / fps - 0.004) return;
     const dt = Math.min(wait, 0.1); wait = 0;
     mixer.update(dt);
+    if (mud.value !== mudTo) mud.value = Math.abs(mudTo - mud.value) < 0.01 ? mudTo : mud.value + (mudTo - mud.value) * Math.min(1, dt * 1.5);
     if (clock.elapsedTime >= until && (after || !fixed)) {
       after = null;
       if (fixed) play(fixed); else wander();
