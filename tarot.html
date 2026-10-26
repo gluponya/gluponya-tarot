@@ -243,7 +243,7 @@ a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
     if (!own && num) box.appendChild(el('span', 'num', c.num));
     if (own && n > 1) f.appendChild(el('span', 'cnt', '×' + n));
     const cap = el('figcaption');
-    cap.appendChild(el('b', null, own ? `${c.num} · ${c.title}` : '???'));
+    cap.appendChild(el('b', null, own ? `${c.num} | ${c.title}` : '???'));
     lines.forEach(x => cap.appendChild(x));
     f.appendChild(cap);
     return f;
@@ -272,7 +272,7 @@ a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
     bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', `собрано ${have} из ${D.total}`);
     who.appendChild(bar);
     const dup = ME.dupes || 0, tc = D.trade || 5;
-    who.appendChild(el('span', 'note', `${have} из ${D.total} карт · вытянуто ${ME.draws} · повторок ${dup}` + (have >= D.total ? ' · вся колода!' : dup >= tc ? ' · можно поменять на новую: !обмен в чате' : '') + (have ? ' · нажми на карту, чтобы рассмотреть её и прочитать предсказания' : '')));
+    who.appendChild(el('span', 'note', `${have} из ${D.total} карт | вытянуто ${ME.draws} | повторок ${dup}` + (have >= D.total ? ' | вся колода!' : dup >= tc ? ' | можно поменять на новую: !обмен в чате' : '') + (have ? ' | нажми на карту, чтобы рассмотреть её и прочитать предсказания' : '')));
     D.cards.forEach(c => { const own = mine(c.id);
       g.appendChild(slot(c, own ? ME.cards[c.id] : 0, own, [own ? rt(c) : el('span', 'rt', 'кто знает, что там')])); });
   }
@@ -285,7 +285,7 @@ a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
     D.cards.forEach(c => {
       const f = (D.first || {})[c.id], own = mine(c.id);
       const line = el('span', 'first');
-      if (f) { line.appendChild(el('i', null, 'первым: ')); line.append(profileHref(f.name) ? nick(f.name) : f.name); if (f.at) line.appendChild(el('i', null, ' · ' + f.at)); }
+      if (f) { line.appendChild(el('i', null, 'первым: ')); line.append(profileHref(f.name) ? nick(f.name) : f.name); if (f.at) line.appendChild(el('i', null, ', ' + f.at)); }
       else line.appendChild(el('i', null, 'ещё никто не вытянул'));
       g.appendChild(slot(c, 0, own, own ? [rt(c), line] : [line], true));
     });
@@ -295,7 +295,7 @@ a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
   function showStats() {
     const S = D.stats || {}, who = $('who'); who.replaceChildren();
     who.appendChild(el('h2', null, 'Статистика колоды'));
-    who.appendChild(el('span', 'note', `Открыто ${S.opened || 0} из ${D.total} карт · вытянуто ${S.draws || 0} · обменов ${S.trades || 0}` + (S.full ? ` · полных колод ${S.full}` : '') + `. Счётчики по картам отстают на ${S.lag_h || 24} ч, чтобы чужие карты оставались тайной`));
+    who.appendChild(el('span', 'note', `Открыто ${S.opened || 0} из ${D.total} карт | вытянуто ${S.draws || 0} | обменов ${S.trades || 0}` + (S.full ? ` | полных колод ${S.full}` : '') + `. Счётчики по картам отстают на ${S.lag_h || 24} ч, чтобы чужие карты оставались тайной`));
     const g = $('grid'); g.replaceChildren(); g.style.display = 'block';
     const st = el('div', 'st');
     const rows = (title, items, color) => { const sec = el('section'); sec.appendChild(el('h3', null, title));
@@ -311,7 +311,7 @@ a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
     st.appendChild(rows('Какие карты выпадали чаще', byCard, x => RCOL[x.k]));
     const never = D.cards.filter(c => !(D.first || {})[c.id]);
     if (never.length) { const sec = el('section'); sec.appendChild(el('h3', null, `Ещё никто не вытянул (${never.length})`));
-      sec.appendChild(el('p', 'note', never.map(c => c.title).join(' · '))); st.appendChild(sec); }
+      sec.appendChild(el('p', 'note', never.map(c => c.title).join(' | '))); st.appendChild(sec); }
     const sec = el('section'); sec.appendChild(el('h3', null, 'Карт в день'));
     const days = S.days || []; const dl = el('ul', 'days'); const dmax = Math.max(1, ...days.map(d => d[1]));
     days.forEach(([d, n]) => { const li = el('li'); const bar = el('i'); bar.style.height = Math.round(n / dmax * 80) + '%';
