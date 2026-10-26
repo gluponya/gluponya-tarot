@@ -127,7 +127,7 @@
       const ul = el('ul', 'cv-list');
       log.forEach(([t, say, tr]) => {
         const li = el('li');
-        li.appendChild(el('time', null, (t ? fmt(t) : 'дата не записана') + (tr ? ' · по обмену' : '')));
+        li.appendChild(el('time', null, (t ? fmt(t) : 'дата не записана') + (tr ? ' | по обмену' : '')));
         if (say) li.appendChild(el('q', null, say)); else li.appendChild(el('span', null, 'предсказание не сохранилось'));
         ul.appendChild(li);
       });
