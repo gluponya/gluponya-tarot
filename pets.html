@@ -110,7 +110,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
       <li><b>Назови</b><span>вылупился — пиши <code>!имя Пушок</code>, лучшие варианты идут в опрос</span></li>
       <li><b>Забери</b><span>вырос — Оня разыгрывает его среди кормивших. Победитель уносит питомца в свой <code>!профиль</code></span></li>
     </ol>
-    <p class="chatline">В чате: <code>!питомец</code> кто растёт сейчас · <code>!имя</code> как зовут · <code>!питомцы</code> эта галерея</p>
+    <p class="chatline">В чате: <code>!питомец</code> кто растёт сейчас | <code>!имя</code> как зовут | <code>!питомцы</code> эта галерея</p>
   </section>
 
   <section style="display:grid;gap:14px">
@@ -306,7 +306,7 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
       naming = `<div class="naming">🗳 Голосуем за имя в опросе над чатом на Twitch!</div>`;
     }
     box.innerHTML = `<div class="now" style="--c:${color(p.family)}"><div class="pic turn"><div class="spin"><img src="${IMG(p.img)}" alt="${esc(p.name || f[0])}" draggable="false"></div></div>
-      <div class="info"><div class="tag"><b>№${p.gen}</b>Сейчас растёт${p.hatched ? ' · вылупился ' + esc(p.hatched) : ''}</div>
+      <div class="info"><div class="tag"><b>№${p.gen}</b>Сейчас растёт${p.hatched ? ' | вылупился ' + esc(p.hatched) : ''}</div>
       ${p.name ? `<p class="nm">${esc(p.name)}</p>` : `<p class="nm none">${esc(f[0])} пока без имени</p>`}
       <div class="facts">${facts(p)}</div>
       ${p.name && p.named_by ? `<div class="carers">Автор имени: ${nick(p.named_by)}</div>` : ''}
@@ -324,8 +324,8 @@ body.obs .grid{grid-template-columns:repeat(6,1fr)}
       return `<figure class="pet" style="--c:${color(p.family)}">
         <div class="pic"><span class="num">№${p.gen}</span><img loading="lazy" src="${IMG(p.img)}" alt="${esc(p.name || f[0])}"></div>
         ${p.name ? `<h3>${esc(p.name)}</h3>` : `<h3 class="none">без имени</h3>`}
-        <div class="who"><b>${esc(f[0])} ${f[1]}</b>${p.part ? ' + ' + esc((PART[p.part] || '').replace(/ \S+$/, '')) : ', чистокровный'}${p.char && p.phase === 'adult' ? ' · ' + esc(CHAR[p.char] || '') : p.phase !== 'adult' ? ' · ' + esc(STAGE[p.phase] || '') : ''}</div>
-        <div class="meta">${p.hatched || p.born ? 'вылупился ' + esc(p.hatched || p.born) : ''}${p.done ? ' · вырос ' + esc(p.done) : ''}${p.named_by ? `<br>автор имени: ${nick(p.named_by)}` : ''}${p.owner && (p.owner.name || p.owner.login) ? `<br>живёт у ${nick(p.owner.name || p.owner.login, p.owner.login)}` : ''}${OBS ? '' : (p.carers && p.carers.length ? '<br>' + carers(p, 3) : '')}</div>
+        <div class="who"><b>${esc(f[0])} ${f[1]}</b>${p.part ? ' + ' + esc((PART[p.part] || '').replace(/ \S+$/, '')) : ', чистокровный'}${p.char && p.phase === 'adult' ? ' | ' + esc(CHAR[p.char] || '') : p.phase !== 'adult' ? ' | ' + esc(STAGE[p.phase] || '') : ''}</div>
+        <div class="meta">${p.hatched || p.born ? 'вылупился ' + esc(p.hatched || p.born) : ''}${p.done ? ' | вырос ' + esc(p.done) : ''}${p.named_by ? `<br>автор имени: ${nick(p.named_by)}` : ''}${p.owner && (p.owner.name || p.owner.login) ? `<br>живёт у ${nick(p.owner.name || p.owner.login, p.owner.login)}` : ''}${OBS ? '' : (p.carers && p.carers.length ? '<br>' + carers(p, 3) : '')}</div>
       </figure>`;
     }).join('') : `<p class="empty">${D.now ? 'Первый питомец ещё растёт, скоро он будет здесь 🌱' : 'Первый питомец ещё в яйце 🥚'}</p>`;
   }
