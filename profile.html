@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Профиль · gluponya</title>
+<title>Профиль gluponya</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Rubik:wght@600;900&display=swap" rel="stylesheet">
@@ -144,7 +144,7 @@ footer{color:var(--soft);font-size:14px}
     const P = D.profiles || {};
     const p = DEMO ? Object.values(P)[0] : P[U];
     if (!p) return nobody(D, U ? 'Такого профиля пока нет' : 'Профили');
-    document.title = `${p.name} · профиль gluponya`;
+    document.title = `${p.name}, профиль gluponya`;
     if (D.demo) app.appendChild(el('span', 'chip demo', '🧪 ТЕСТОВЫЙ ПРОФИЛЬ, выдуманные данные'));
 
     // ---- шапка ----
@@ -201,7 +201,7 @@ footer{color:var(--soft);font-size:14px}
       cd.addEventListener('click', go);
       cd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
       const cap = el('figcaption'); cap.appendChild(el('b', null, c.title));
-      cap.append(`${(D.rarity[c.rarity] || {}).label || ''} · ${day(c.t)}`);
+      cap.append(`${(D.rarity[c.rarity] || {}).label || ''} | ${day(c.t)}`);
       f.append(cd, cap); sh.appendChild(f);
     });
     if (!items.length) sh.appendChild(el('p', 'empty', 'Пока пусто. Витрина заполнится после первой карты дня (награда «Карта дня 🔮» за баллы канала)'));
