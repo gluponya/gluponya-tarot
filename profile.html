@@ -37,6 +37,11 @@ a{color:var(--ink)}
 .why{margin:8px 0 0;color:var(--soft);font-size:15px}
 .about{margin:12px 0 0;max-width:520px;padding:10px 14px;background:var(--sheet);border:2px solid var(--line);border-radius:14px;font-size:15px}
 .about b{display:block;font-size:13px;color:var(--soft);margin-bottom:2px}
+.about code{display:inline-block;margin-top:8px;font:800 14px/1.2 ui-monospace,Consolas,monospace;padding:6px 10px;border-radius:10px;background:var(--paper);border:2px solid var(--line)}
+.mine-btn{margin-top:12px;font:800 14px/1 var(--body);padding:8px 12px;border-radius:999px;border:2px dashed var(--line);background:transparent;color:var(--soft);cursor:pointer}
+.unlock{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.unlock input{flex:1 1 150px;min-width:0;font:800 16px/1 ui-monospace,Consolas,monospace;letter-spacing:.15em;text-transform:uppercase;padding:9px 12px;border-radius:10px;border:2px solid var(--ink);background:var(--paper);color:var(--ink)}
+.unlock button{font:800 15px/1 var(--body);padding:9px 14px;border-radius:10px;border:2px solid var(--ink);background:var(--yellow);color:#1B1418;cursor:pointer}
 .rank{margin-top:14px;display:grid;gap:6px;max-width:520px}
 .rank b{font:900 18px/1 var(--display);text-transform:uppercase;letter-spacing:.03em}
 .bar{height:16px;border-radius:999px;border:3px solid var(--ink);background:var(--sheet);overflow:hidden}
@@ -139,6 +144,57 @@ footer{color:var(--soft);font-size:14px}
     app.appendChild(s);
   }
 
+  // ---- строчка «бот о тебе» только для хозяина страницы: шифровка как у колоды в альбоме (tarot.py _seal) ----
+  const store = { get(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
+                  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+  const ALPH = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{8}$/;
+  const norm = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+  async function openBox(code, b, iter) {
+    if (!(window.crypto && crypto.subtle)) return null;
+    const enc = new TextEncoder(), b64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+    const hex = buf => Array.from(new Uint8Array(buf), x => x.toString(16).padStart(2, '0')).join('');
+    const base = await crypto.subtle.importKey('raw', enc.encode(code), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: b64(b.s), iterations: iter, hash: 'SHA-256' }, base, 256);
+    const k = await crypto.subtle.importKey('raw', bits, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    if (hex(await crypto.subtle.sign('HMAC', k, enc.encode('id'))).slice(0, 24) !== b.i) return null;
+    const nonce = b64(b.n), ct = b64(b.c), out = new Uint8Array(ct.length);
+    for (let i = 0, off = 0; off < ct.length; i++) {
+      const blk = new Uint8Array(2 + nonce.length + 4); blk.set(enc.encode('ks')); blk.set(nonce, 2);
+      new DataView(blk.buffer).setUint32(2 + nonce.length, i);
+      const ks = new Uint8Array(await crypto.subtle.sign('HMAC', k, blk));
+      for (let j = 0; j < ks.length && off < ct.length; j++, off++) out[off] = ct[off] ^ ks[j];
+    }
+    try { return JSON.parse(new TextDecoder().decode(out)); } catch (e) { return null; }
+  }
+  async function mineAbout(ab, b, iter) {
+    const show = text => {
+      ab.replaceChildren(el('b', null, '🤖 Бот о тебе, видишь только ты'), document.createTextNode(text));
+      ab.append(el('br'), el('code', null, '!профиль о себе показать'));
+    };
+    const ask = msg => {
+      ab.replaceChildren(el('b', null, '🤖 Что бот думает о тебе'));
+      if (msg) ab.appendChild(document.createTextNode(msg));
+      const f = el('form', 'unlock'), inp = el('input'), go = el('button', null, 'Открыть');
+      inp.placeholder = 'XXXX-XXXX'; inp.maxLength = 12; inp.autocomplete = 'off'; inp.spellcheck = false;
+      inp.setAttribute('aria-label', 'Личный код альбома'); go.type = 'submit';
+      f.append(inp, go); ab.appendChild(f);
+      f.addEventListener('submit', e => { e.preventDefault(); tryCode(norm(inp.value), true); });
+    };
+    const tryCode = async (code, typed) => {
+      if (typed && !ALPH.test(code)) return ask('Код альбома таро из 8 знаков, его присылает станция: !код в чате');
+      let r = null;
+      if (ALPH.test(code)) try { r = await openBox(code, b, iter); } catch (e) {}
+      if (r && r.about) { if (typed) store.set('tarot-code', code); return show(r.about); }
+      if (typed) return ask('Код не подошёл. Новый код: !код в чате');
+      const btn = el('button', 'mine-btn', '🔑 Это моя страница');   // чужим зрителям не мешает: просто кнопка
+      btn.type = 'button'; btn.addEventListener('click', () => ask(''));
+      ab.replaceWith(btn); btn.addEventListener('click', () => btn.replaceWith(ab), { once: true });
+    };
+    ab.hidden = true;                              // пока пробуем сохранённый код, пустую плашку не показываем
+    new MutationObserver(() => { ab.hidden = false; }).observe(ab, { childList: true });
+    tryCode(norm(store.get('tarot-code')), false);
+  }
+
   function render(D) {
     document.getElementById('msg').remove();
     const P = D.profiles || {};
@@ -162,10 +218,14 @@ footer{color:var(--soft);font-size:14px}
     if (p.since) meta.appendChild(el('span', 'chip', (p.follow ? '🐾 фоллоу с ' : '🐾 с нами с ') + p.since));
     box.appendChild(meta);
     if (p.title && p.why) box.appendChild(el('p', 'why', p.why));
-    if (p.about) {                                 // строчка бота: есть только у тех, кто сам включил !профиль о себе показать
+    if (p.about) {                                 // строчка бота всем: только у тех, кто сам включил !профиль о себе показать
       const ab = el('p', 'about');
       ab.append(el('b', null, '🤖 Бот о зрителе'), document.createTextNode(p.about));
       box.appendChild(ab);
+    } else if (p.mine && p.mine.s) {               // себе: та же строчка под личным кодом альбома таро
+      const ab = el('div', 'about');
+      box.appendChild(ab);
+      mineAbout(ab, p.mine, D.kdf || 120000);
     }
     if (p.goal && p.goal.t) {                      // ближайший переходящий титул (titles.py)
       const rk = el('div', 'rank');
