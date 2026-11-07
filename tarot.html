@@ -330,7 +330,7 @@ a.nick:hover,a.nick:focus-visible{text-decoration-color:currentColor}
   }
   async function login(v, quiet) {
     const code = norm(v);
-    if (!ALPH.test(code)) { if (!quiet) { TAB = 'mine'; ME = null; show(); showMine('Код из 8 знаков, вида XXXX-XXXX. Его присылает станция в личку Twitch'); } return; }
+    if (!ALPH.test(code)) { if (!quiet) { TAB = 'mine'; ME = null; show(); showMine('Код из 8 знаков, вида XXXX-XXXX. Его присылает Глупостанция в личку Twitch'); } return; }
     if (!quiet && !ME) showMine('Открываю колоду…');   // несколько PBKDF2: на телефоне секунда-другая
     try {
       const me = await unlock(code);
