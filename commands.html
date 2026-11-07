@@ -210,7 +210,7 @@ footer{color:var(--soft);font-size:14px}
     // высота липкой полосы — чтобы переход по разделу не прятал заголовок под ней
     const setBar = () => document.documentElement.style.setProperty('--bar', bar.offsetHeight + 'px');
     setBar(); window.addEventListener('resize', setBar);
-    main.appendChild(el('footer', null, `Отвечает ${D.bot || 'Глупобот'} и станция Они. Тут только то, что сейчас включено на стриме`));
+    main.appendChild(el('footer', null, `Отвечает ${D.bot || 'Глупобот'} и Глупостанция Они. Тут только то, что сейчас включено на стриме`));
     if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
   }
   function fail() {
