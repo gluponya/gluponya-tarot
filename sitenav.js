@@ -1,7 +1,7 @@
 /* Общее меню сайта gluponya: главная, таро, питомцы, команды, профили. Одно на все страницы.
    В странице: <nav class="sn" data-page="tarot"></nav><script src="/static/sitenav.js"></script> — сразу за меню, без defer,
    чтобы меню нарисовалось до первой отрисовки и ничего не прыгало.
-   Станция: ссылки /home, /tarot…  GitHub Pages (gh_pages.py меняет путь скрипта на sitenav.js): index.html, tarot.html…
+   Глупостанция: ссылки /home, /tarot…  GitHub Pages (gh_pages.py меняет путь скрипта на sitenav.js): index.html, tarot.html…
    ?obs (сцена OBS) — без меню. */
 (() => {
   const nav = document.querySelector('nav.sn');
